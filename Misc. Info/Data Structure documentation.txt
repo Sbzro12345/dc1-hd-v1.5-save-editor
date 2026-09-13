@@ -10,7 +10,7 @@ Token Count:
 
 
 # When anything below references "Hero Identifier", it includes the null string terminator 00
-# Assume a Hero Identifier is an 8-byte string
+# Hero Identifier, like other strings in DC1, are dynamic in length
 General Hero Identifier - 47 65 6E 65 72 61 6C 00
 Melwen Hero Identifier - 4D 65 6C 77 65 6E 00
 
