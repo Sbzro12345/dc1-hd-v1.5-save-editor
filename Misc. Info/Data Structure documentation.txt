@@ -5,8 +5,8 @@ NOTE: Defender Chronicles HD v1.5 is a little-endian 32-bit game
 
 Token Count:
 - takes up 4 bytes (DWORD)
-- starts at 69 bytes before the General Hero Identifier (DWORD)
-- [Tokens] [65 bytes] 47 65 6E 65 72 61 6C 00
+- starts at 53 bytes before the General Hero Identifier (DWORD)
+- [Tokens] [49 bytes] 47 65 6E 65 72 61 6C 00
 
 
 # When anything below references "Hero Identifier", it includes the null string terminator 00
