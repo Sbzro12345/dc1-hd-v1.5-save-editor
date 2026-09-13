@@ -3,6 +3,8 @@ Defender Chronicles 1 is an old iOS 2.X-3.2 tower defense game that I used to pl
 
 I have also uploaded various miscellaneous information about the game into `Misc. Info`. This includes a partial version of the game's release Changelog, an outdated gameplay guide, an outdated HEX editing guide, and various game information that should help players get better and also find it easier to hack the game. The idea is to centralise this information and make it public, especially since the Defender Chronicles forum has now been defunct for some time, and the game has long since been delisted from the App Store.
 
+
+## Credits
 - Credits to the teams of Menara Games and Gimka Entertainment for the outstanding games Defender Chronicles 1 and 2. I had so much fun playing and replaying these 2 games over and over again when I was younger.
 - Credits to Merahk for the outdated, but still useful HEX Edit guide: https://www.scribd.com/document/65313822/Defender-Chronicles-Tutorial. This helped me figure out parts of the data structure for item objects.
 - Credits to Yingwu for the outdated gameplay guide: https://www.yumpu.com/en/document/view/7443671/yingwus-ultimate-defendar-chronicle-guide-defender-chronicles/4. The partial changelog is basically all thanks to them. I just added little bits of information for 1.4.3 and 1.5. They also detail game mechanics to a much greater detail than the game itself does, even if they are missing a few new features, units, items and difficulties. This kind of information probably used to be common knowledge in the forums, but alas, I never bothered visiting the forums before, so I will never know.
