@@ -1,2 +1,2 @@
-# dc1-hd-v1.5-save-editor
-Save Editor and Misc. HEX Editing Information for Defender Chronicles 1 HD v1.5
+# Defender Chronicles 1 HD v1.5 Save Editor
+Defender Chronicles 1 is an old iOS 2.X-3.2 tower defense game that I used to play a lot when I was younger. Coming back with TouchHLE, I realized just how much of a grindfest the game is. Also, certain features like IAP Items are just plain no longer available, and in Defender Chronicles 2, there are version-gated items (Blaze Ball Quicksilver for v1.0 and Pristine Rod Argent Duo Algid for v1.1) that no longer have their corresponding versions' IPAs available on the Internet. This save editor also doubles as practice for when I will eventually make a save editor for Defender Chronicles 2 in order to recreate said lost content.
