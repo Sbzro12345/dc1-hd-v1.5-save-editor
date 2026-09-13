@@ -3,6 +3,13 @@ Defender Chronicles 1 is an old iOS 2.X-3.2 tower defense game that I used to pl
 
 I have also uploaded various miscellaneous information about the game into `Misc. Info`. This includes a partial version of the game's release Changelog, an outdated gameplay guide, an outdated HEX editing guide, and various game information that should help players get better and also find it easier to hack the game. The idea is to centralise this information and make it public, especially since the Defender Chronicles forum has now been defunct for some time, and the game has long since been delisted from the App Store.
 
+## AI Usage Disclaimer
+AI was used to help me reverse-engineer how the encryption and decryption of saves worked, as well as in understanding the data structures associated with saves and how items are generated randomly in-game when provided with a decrypted HEX dump and Assembly/decompiled code snippets. AI was used extensively as an aid during static analysis: for noticing similarities between different encrypted saves for a good starting point in Ghidra, for understanding ARM Assembly, and for advising me what steps to take in Ghidra after I fed it the relevant Assembly/decompiled code snippets.
+
+The actual reverse-engineering process was performed by me. I created and loaded multiple different save files, used Ghidra's Code Manager to search for scalars and show references to addresses, and manually traced back the encryption and decryption of saves. Differential analysis of the save files was also done by me, since AI proved to be very unreliable for this.
+
+The actual code of the save editor itself was written entirely by AI. I was entirely responsible for the overall design and functionality of the save editor, as well as fine-tuning its features and design through iterative prompting and testing to ensure that the resulting implementation aligned with what I wanted.
+
 ## Credits
 - Credit to the teams of Menara Games and Gimka Entertainment for the outstanding games Defender Chronicles 1 and 2. Me and my brother had so much fun playing and replaying these 2 games over and over again when I was younger.
 - Credits to Merahk for the outdated, but still useful HEX Edit guide: https://www.scribd.com/document/65313822/Defender-Chronicles-Tutorial. This helped me figure out parts of the data structure for item objects.
