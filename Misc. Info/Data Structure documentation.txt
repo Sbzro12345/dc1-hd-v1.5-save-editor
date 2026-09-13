@@ -108,7 +108,7 @@ Equipment
       Where X is either 0 or 1, General only = X0X1, Melwen only = X1X0, Both = X1X1.
       e.g. 1111 is 0x0F, and it works for Both heroes
 
-  - array of 10 properties. Each property contains 12 bytes:
+  - array of 10 Effect entries. Each entry contains 12 bytes:
     - Effect - 4 bytes
     - Target - 4 bytes
     - Value - 4 bytes (some effects only takes 0 for a valid value)
