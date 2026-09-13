@@ -1,0 +1,81 @@
+EFFECTS
+# With mandatory Value 00 00 00 00
+D1 0B 00 00 - Cloak of Invisibility
+DB 0B 00 00 - Dominion
+DC 0B 00 00 - Merry Roper's Ale Bottle
+
+
+
+
+
+
+
+
+TARGETS
+# Unless otherwise specified, default to FE FF FF FF
+FE FF FF FF Hero
+FF FF FF FF Hero
+
+04 00 00 00 Warrior + Paladin (when giving Golem Slayer, Paladin is unaffected)
+05 00 00 00 Berserker
+06 00 00 00 Barog (Silverkeep Hero Replacement)
+0B 00 00 00 Archer + Marksman
+0C 00 00 00 Ranger
+0D 00 00 00 Orrin (Gardbridge Free Ranger)
+0F 00 00 00 Mage + Archmage
+12 00 00 00 Archmage
+13 00 00 00 Paladin
+14 00 00 00 Marksman
+17 00 00 00 Halfling + Lizardman
+19 00 00 00 Lizardman
+1A 00 00 00 Mini Ogre
+
+01 00 00 00 Hero (does nothing)
+02 00 00 00 Hero (does nothing)
+03 00 00 00 Hero (does nothing)
+07 00 00 00 Knight (DC2)
+08 00 00 00 Cavalry (DC2)
+0A 00 00 00 Paladin (does nothing, probably DC2)
+16 00 00 00 Dwarf (DC2)
+
+09 00 00 00 Amazon (?)
+0E 00 00 00 Sniper (?)
+10 00 00 00 Moon Mage (?)
+11 00 00 00 Sun Mage (?)
+15 00 00 00 Elf (?)
+18 00 00 00 Gnome (?)
+1B 00 00 00 CRASH!!!
+1C 00 00 00 CRASH!!!
+
+
+
+
+
+effects
+CD 0B - CRASH!!!
+CE 0B - CRASH!!!
+CF 0B - CRASH!!!
+D1 0B 00 00 - Cloak of Invisibility
+D2 0B 00 00 - No effect???
+D3 0B 00 00 - Elixir of Forgetfulness (doesnt do anything)
+D4 0B 00 00 - Elixir of Humility (doesnt do anything)
+D5 0B 00 00 - Healing Potion (doesnt work if not acc slot?)
+D6 - UNUSED Lightning Staff (doesnt work?)
+D7 - UNUSED Ice Staff (doesnt work?)
+D8 - Healing Spell (doesnt work?)
+D9 - UNUSED Spell (?) + Archmage Double ATK Rating and Increased Radius (doesnt work?)
+DA - Attack Spell (?) (doesnt work?)
+DB 0B 00 00 - Dominion
+DC 0B 00 00 - Merry Roper's Ale Bottle
+DD - Attack Spell (?) (doesnt work?)
+DE - No effect???
+DF - UNUSED Lightning Staff (doesnt work?)
+E0 - UNUSED Ice Staff (doesnt work?)
+E1 - UNUSED Ice Staff (doesnt work?)
+E2 - CRASH!!!
+E3 - CRASH!!!
+
+DD 07 00 00 - Increase attack rating
+
+EF 03 00 00 - Crown (Increase all 3 Commander)
+02 00 00 00 - Increase Starting Gold
