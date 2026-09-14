@@ -23,26 +23,47 @@ TOKEN_BACK = 53
 # Hero identifiers are dynamic-length strings including the null terminator.
 # Both hero fields below are measured from the end of that terminator.
 LEVEL_AFTER = 0          # Hero Level sits directly after the terminator
-SKILL_AFTER = 16         # Skill 1 sits 16 bytes past the terminator
-SKILL_COUNT = 6
 
+# Skills carry their own distance past the terminator, because the block does
+# not sit at the same place for both heroes and Melwen stores hers out of order:
+#   General: [16 bytes][Skill1][Skill2][Skill3][Skill4][Skill5][Skill6]
+#   Melwen:  [28 bytes][Skill4][Skill5][Skill6][Skill1][Skill2][Skill3]
+# Each list is in Skill 1 to 6 order, which is the order the game displays.
 HEROES = (
     ("General", b"General\x00", (
-        "Combat",
-        "Morale",
-        "Cunning",
-        "Infantry Commander",
-        "Bowmen Commander",
-        "Mage Commander",
+        ("Combat", 16),
+        ("Morale", 20),
+        ("Cunning", 24),
+        ("Infantry Commander", 28),
+        ("Bowmen Commander", 32),
+        ("Mage Commander", 36),
     )),
     ("Melwen", b"Melwen\x00", (
-        "Sorcery",
-        "Wisdom",
-        "Power",
-        "Infantry Commander",
-        "Bowmen Commander",
-        "Mage Commander",
+        ("Sorcery", 40),
+        ("Wisdom", 44),
+        ("Power", 48),
+        ("Infantry Commander", 28),
+        ("Bowmen Commander", 32),
+        ("Mage Commander", 36),
     )),
+)
+
+# The General map array follows the closest 01 00 00 00 FF FF FF FF block above
+# the Elwin identifier: [01 00 00 00 FF FF FF FF][149 bytes][9 maps x 8 bytes]
+ELWIN_ID = b"Elwin\x00"
+MAP_ANCHOR = b"\x01\x00\x00\x00\xff\xff\xff\xff"
+MAP_ARRAY_AFTER = 149
+MAP_ENTRY = 8
+MAP_NAMES = (
+    "Greatsands",
+    "Cloudpass",
+    "Marshwood",
+    "Silverkeep",
+    "Breewich",
+    "Gardbridge",
+    "Tarnwood",
+    "Helegom",
+    "Siria",
 )
 
 DWORD_MIN = -2147483648
@@ -70,16 +91,55 @@ Level hack VS Skill hack
 
 LEVEL_WARNING = """\
   Note: Hero Level is 0-indexed, so the in-game level is this value plus one.
-  Set it very high and further EXP will push it over the signed DWORD limit
-  and into negative numbers, which needs another save edit to undo."""
+  
+  Note: Setting Hero Level very high and further EXP will push it over the
+  signed DWORD limit and into negative numbers, which needs another save edit to undo.
+  """
 
 SKILL_NOTE = """\
-  Note: The default cap is 50, up to and including Heroic."""
+  Note: The default cap is 50 per skill, up to and including Heroic."""
+
+STARS_NOTE = """  
+  Note: Setting the stars with Save Editor changes reputation, and also unlocks
+  their associated unlocks, including Melwen. It won't give Regalia of Dominion
+  or Merry Roper's Ale Bottle though, you need to actually beat the associated levels.
+  
+  Note: Heroic is 6 stars and Legend+ is 7.
+  To make Legend difficulty appear, all must be 6+.
+  To make Mythic+ diffuclty appear, all must be 7.
+  """
+
+RANK_NOTE = """\
+  Note: Clears past Mythic, 0-indexed. Ultima does not have a cap.
+  For next difficulties to unlock, all must be at the R1 level.
+  e.g. To unlock Immortal, all levels must minimum have 20 value.
+  Otherwise, they will be capped at R!
+  
+  Mythic R1 = 0, Mythic R20 = 19
+  Immortal R1 = 20, Immortal R20 = 39
+  Demigod R1 = 40, Demigod R20 = 59
+  Ultima R1 = 60, Ultima R20 = 79 ... and so on
+  """
+
+GARDBRIDGE_NOTE = """\
+  Note: Gardbridge takes a value whether or not the Secret is unlocked, but
+  without it, the map stays unplayable and shows no stars."""
 
 CUNNING_WARNING = """\
   Note: Cunning raises EXP gain. Set it very high and a single clear can
   overflow the hero level counter into negative numbers, which needs another
   save edit to undo."""
+
+MORALE_WARNING = """\
+  Note: Morale raises Token gain. Set it very high and a single clear can
+  overflow the Token Count into negative numbers, which needs another
+  save edit to undo."""
+
+# Skills that carry a warning of their own on top of the shared cap note.
+SKILL_WARNINGS = {
+    "Cunning": CUNNING_WARNING,
+    "Morale": MORALE_WARNING,
+}
 
 
 # ---------------------------------------------------------------- crypto
@@ -284,9 +344,9 @@ def count_pending(profile, baseline, offsets):
                if read_dword(profile, off) != read_dword(baseline, off))
 
 
-def find_hero_blocks(profile, ident):
+def find_hero_blocks(profile, ident, skills):
     """Offsets of every hero record whose fields fit inside the payload."""
-    span = len(ident) + SKILL_AFTER + SKILL_COUNT * 4
+    span = len(ident) + max(after for _, after in skills) + 4
     blocks, start = [], 0
     while True:
         found = profile.find(ident, start)
@@ -297,7 +357,7 @@ def find_hero_blocks(profile, ident):
         start = found + 1
 
 
-def choose_block(profile, name, ident, blocks):
+def choose_block(profile, name, ident, blocks, skills):
     """Pick one record when an identifier turns up more than once."""
     if len(blocks) == 1:
         return blocks[0]
@@ -308,9 +368,8 @@ def choose_block(profile, name, ident, blocks):
     for n, base in enumerate(blocks, 1):
         end = base + len(ident)
         level = read_dword(profile, end + LEVEL_AFTER)
-        skills = [read_dword(profile, end + SKILL_AFTER + i * 4)
-                  for i in range(SKILL_COUNT)]
-        print("  %d. offset 0x%X  level %d  skills %s" % (n, base, level, skills))
+        values = [read_dword(profile, end + after) for _, after in skills]
+        print("  %d. offset 0x%X  level %d  skills %s" % (n, base, level, values))
 
     choice = menu_choice(len(blocks))
     return None if choice is None else blocks[choice - 1]
@@ -319,8 +378,8 @@ def choose_block(profile, name, ident, blocks):
 def build_heroes(profile):
     """Both heroes exist in every valid save, so a miss means a broken file."""
     heroes = {}
-    for name, ident, skill_names in HEROES:
-        blocks = find_hero_blocks(profile, ident)
+    for name, ident, skills in HEROES:
+        blocks = find_hero_blocks(profile, ident, skills)
         if name == "General":
             blocks = [b for b in blocks if b >= TOKEN_BACK]
         if not blocks:
@@ -329,19 +388,53 @@ def build_heroes(profile):
                   % name)
             return None
 
-        base = choose_block(profile, name, ident, blocks)
+        base = choose_block(profile, name, ident, blocks, skills)
         if base is None:
             return None
 
         end = base + len(ident)
         fields = [("%s Level" % name, end + LEVEL_AFTER, (LEVEL_WARNING,))]
-        for i, skill in enumerate(skill_names):
-            notes = (SKILL_NOTE, CUNNING_WARNING) if skill == "Cunning" \
-                else (SKILL_NOTE,)
-            fields.append((skill, end + SKILL_AFTER + i * 4, notes))
+        for label, after in skills:
+            extra = SKILL_WARNINGS.get(label)
+            notes = (SKILL_NOTE, extra) if extra else (SKILL_NOTE,)
+            fields.append((label, end + after, notes))
         heroes[name] = {"base": base, "fields": fields}
 
     return heroes
+
+
+def build_maps(profile):
+    """Locate the General map array from the anchor above the Elwin identifier."""
+    elwin = profile.find(ELWIN_ID)
+    if elwin == -1:
+        print("\nNo Elwin identifier in the profile payload, so the map array"
+              " cannot be located. Nothing has been changed.")
+        return None
+
+    anchor = profile.rfind(MAP_ANCHOR, 0, elwin)
+    if anchor == -1:
+        print("\nNo map array anchor above the Elwin identifier."
+              " Nothing has been changed.")
+        return None
+
+    start = anchor + len(MAP_ANCHOR) + MAP_ARRAY_AFTER
+    if start + len(MAP_NAMES) * MAP_ENTRY > len(profile):
+        print("\nThe map array runs past the end of the profile payload."
+              " Nothing has been changed.")
+        return None
+
+    maps = []
+    for i, name in enumerate(MAP_NAMES):
+        base = start + i * MAP_ENTRY
+        extra = (GARDBRIDGE_NOTE,) if name == "Gardbridge" else ()
+        maps.append({
+            "name": name,
+            "fields": [
+                ("Number of Stars", base, (STARS_NOTE,) + extra),
+                ("Mythic+ R number", base + 4, (RANK_NOTE,) + extra),
+            ],
+        })
+    return maps
 
 
 # ---------------------------------------------------------------- editing
@@ -364,10 +457,12 @@ def edit_field(profile, baseline, page, label, offset, notes=()):
         write_dword(profile, offset, value)
 
 
-def hero_page(profile, baseline, name, fields):
+def field_page(profile, baseline, title, fields, intro=None):
+    """List a set of DWORD fields and hand the chosen one to edit_field."""
     while True:
-        header("%s STATS" % name.upper())
-        print(GUIDANCE)
+        header(title)
+        if intro:
+            print(intro)
         print(THIN)
         for n, (label, offset, _) in enumerate(fields, 1):
             print("  %d. %-24s %s" % (n, label, preview(profile, baseline, offset)))
@@ -377,11 +472,29 @@ def hero_page(profile, baseline, name, fields):
         if choice is None or choice == len(fields) + 1:
             return
         label, offset, notes = fields[choice - 1]
-        edit_field(profile, baseline, "%s STATS" % name.upper(),
-                   label, offset, notes)
+        edit_field(profile, baseline, title, label, offset, notes)
 
 
-def main_menu(profile, baseline, heroes, token_offset, state, commit):
+def maps_page(profile, baseline, maps):
+    while True:
+        header("GENERAL MAPS")
+        print(THIN)
+        for n, entry in enumerate(maps, 1):
+            stars = preview(profile, baseline, entry["fields"][0][1])
+            rank = preview(profile, baseline, entry["fields"][1][1])
+            print("  %2d. %-12s Stars %-14s R %s"
+                  % (n, entry["name"], stars, rank))
+        print("  %2d. Back" % (len(maps) + 1))
+
+        choice = menu_choice(len(maps) + 1)
+        if choice is None or choice == len(maps) + 1:
+            return
+        entry = maps[choice - 1]
+        field_page(profile, baseline, "GENERAL MAPS > %s" % entry["name"],
+                   entry["fields"])
+
+
+def main_menu(profile, baseline, heroes, maps, token_offset, state, commit):
     """Returns when the user exits. commit(profile) performs the save."""
     status = ""
     while True:
@@ -398,14 +511,21 @@ def main_menu(profile, baseline, heroes, token_offset, state, commit):
             row = "  %d. %s Stats" % (n, name)
             print(row.ljust(28) + note if note else row)
 
-        print("  4. Save")
-        print("  5. Exit")
+        map_offsets = [off for entry in maps for _, off, _ in entry["fields"]]
+        changed = count_pending(profile, baseline, map_offsets)
+        note = ("(%d unsaved change%s)"
+                % (changed, "" if changed == 1 else "s")) if changed else ""
+        row = "  4. General Maps"
+        print(row.ljust(28) + note if note else row)
+
+        print("  5. Save")
+        print("  6. Exit")
         if status:
             print("\n" + status)
 
-        choice = menu_choice(5)
+        choice = menu_choice(6)
         if choice is None:
-            choice = 5
+            choice = 6
         status = ""
 
         if choice == 1:
@@ -413,16 +533,20 @@ def main_menu(profile, baseline, heroes, token_offset, state, commit):
 
         elif choice in (2, 3):
             name = "General" if choice == 2 else "Melwen"
-            hero_page(profile, baseline, name, heroes[name]["fields"])
+            field_page(profile, baseline, "%s STATS \n" % name.upper(),
+                       heroes[name]["fields"], GUIDANCE)
 
         elif choice == 4:
+            maps_page(profile, baseline, maps)
+
+        elif choice == 5:
             status = commit(profile)
             if status is None:
                 baseline[:] = profile
                 status = ""
 
         else:
-            all_offsets = [token_offset]
+            all_offsets = [token_offset] + map_offsets
             for hero in heroes.values():
                 all_offsets += [off for _, off, _ in hero["fields"]]
             changed = count_pending(profile, baseline, all_offsets)
@@ -487,6 +611,10 @@ def main():
     if heroes is None:
         return
 
+    maps = build_maps(profile)
+    if maps is None:
+        return
+
     baseline = bytearray(profile)
     token_offset = heroes["General"]["base"] - TOKEN_BACK
     state = {"path": path}
@@ -499,14 +627,8 @@ def main():
             return "  Save failed, so the save file was left alone: %s" % error
         return None
 
-    main_menu(profile, baseline, heroes, token_offset, state, commit)
+    main_menu(profile, baseline, heroes, maps, token_offset, state, commit)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    finally:
-        try:
-            input("\nPress Enter to close this window: ")
-        except (EOFError, KeyboardInterrupt):
-            pass
+    main()
