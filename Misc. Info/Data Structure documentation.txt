@@ -13,6 +13,8 @@ Token Count:
 # Hero Identifier, like other strings in DC1, are dynamic in length
 General Hero Identifier - 47 65 6E 65 72 61 6C 00
 Melwen Hero Identifier - 4D 65 6C 77 65 6E 00
+Elwin Hero Identifier - 45 6C 77 69 6E 00
+Lovell Hero Identifier - 4C 6F 76 65 6C 6C 00
 
 
 Hero Level:
@@ -41,8 +43,11 @@ Available Skill Points:
 
 Skills:
 - each stat takes up 4 bytes (DWORD)
-- starts 16 bytes after the Hero Identifier i.e. skip 16 bytes after the end of null string terminator
-- e.g. for General: 47 65 6E 65 72 61 6C 00 [16 bytes] [Skill1] [Skill2] [Skill3] [Skill4] [Skill5] [Skill6]
+- for General: starts 16 bytes after the Hero Identifier i.e. skip 16 bytes after the end of null string terminator
+- for General: 47 65 6E 65 72 61 6C 00 [16 bytes] [Skill1] [Skill2] [Skill3] [Skill4] [Skill5] [Skill6]
+- for Melwen: starts 28 bytes after the Hero Identifier
+- for Melwen: 4D 65 6C 77 65 6E 00 [28 bytes] [Skill4] [Skill5] [Skill6] [Skill1] [Skill2] [Skill3]
+
 
 
 ???
@@ -54,6 +59,28 @@ Equipped Weapon
 Equipped Chestpiece
 Equipped Accessory 1
 Equipped Accessory 2
+
+
+...
+
+
+01 00 00 00 FF FF FF FF
+- dynamic length away from the next Hero Length Identifier
+
+
+...
+
+
+Mythic+ Maps Clears Block
+- array of 9 maps. Each map contains 8 bytes
+  - Number of stars icon. (Heroic is 6, Legend+ is 7) [4 bytes]
+  - Number of clears past Mythic, 0-indexed. e.g. Mythic R0 is 0, Demigod R0 is 40 [4 bytes]
+  - In order: Greatsands, Cloudpass, Marshwood, Silverkeep, Breewich, Gardbridge, Tarnwood, Helegom, Siria
+  - Changing number of stars icon with Save Editor will automatically unlock their associated unlocks, like as if beating normally. Also increases Reputation. But, does not award Quest Items Regalia or Ale Bottle
+  - Gardbridge can be set even if Secret is not unlocked. But, if Secret is not unlocked, level is not playable and no stars will be displayed
+  - To unlock Legend, all levels' stars icon must be minimum 6.
+  - To unlock Mythic+, all levels' stars icon must be minimum 7.
+  - General's Map Array: [01 00 00 00 FF FF FF FF][149 bytes][arr[maps]] - look for the closest 01 00 00 00 FF FF FF FF block above Elwin String Identifier
 
 
 
