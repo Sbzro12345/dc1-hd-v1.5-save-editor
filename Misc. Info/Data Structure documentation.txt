@@ -56,14 +56,14 @@ Equipped Accessory 1
 Equipped Accessory 2
 
 
-...
+??? [157 bytes]
 
 
-01 00 00 00 FF FF FF FF
+01 00 00 00 FF FF FF FF (final instance of 01 00 00 00 FF FF FF FF)
 - dynamic length away from the next Hero Length Identifier
 
 
-...
+??? [149 bytes]
 
 
 Mythic+ Maps Clears Block
