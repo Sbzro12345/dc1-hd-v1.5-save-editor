@@ -10,6 +10,7 @@ Just Python3
 - Token Hack
 - Level Hack for General and Melwen
 - Skill Level Hack for General and Melwen
+- Maps Hack for General
 
 ## Instructions
 - Double-click the `dc1_save_editor.py` or run it from the command line. It is recommended to keep the plist you want to edit in the same dir as the save editor, so that it can auto-detect the plist. Otherwise, you will be prompted to provide a filepath to the plist you would like to edit.
