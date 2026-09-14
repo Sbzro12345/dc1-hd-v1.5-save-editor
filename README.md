@@ -10,7 +10,7 @@ Just Python3
 - Token Hack
 - Level Hack for General and Melwen
 - Skill Level Hack for General and Melwen
-- Maps Hack for General
+- Maps Hack for General and Melwen
 
 ## Instructions
 - Double-click the `dc1_save_editor.py` or run it from the command line. It is recommended to keep the plist you want to edit in the same dir as the save editor, so that it can auto-detect the plist. Otherwise, you will be prompted to provide a filepath to the plist you would like to edit.
@@ -24,7 +24,7 @@ AI was used to help me reverse-engineer how the encryption and decryption of sav
 
 The actual reverse-engineering process was performed by me. I created and loaded multiple different save files, used Ghidra's Code Manager to search for scalars and show references to addresses, and manually traced back the encryption and decryption of saves. Differential analysis of the save files was also done by me, since AI proved to be very unreliable for this.
 
-The actual code of the save editor itself was written entirely by AI. I was entirely responsible for the overall design and functionality of the save editor, as well as fine-tuning its features and design through iterative prompting and testing to ensure that the resulting implementation aligned with what I wanted.
+The actual code of the save editor itself was written entirely by AI. I was entirely responsible for the overall design and functionality of the save editor, as well as fine-tuning its features and design through iterative prompting and testing to ensure that the resulting implementation aligned with what I wanted. I also did all the design myself for the Melwen Maps Hack algorithm, since AI proved incapable at doing so.
 
 ## Credits
 - Thanks to the teams of Menara Games and Gimka Entertainment for the outstanding games Defender Chronicles 1 and 2. Me and my brother had so much fun playing and replaying these 2 games over and over again when we were younger.
