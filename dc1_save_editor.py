@@ -435,6 +435,64 @@ def build_maps(profile):
             ],
         })
     return maps
+    
+
+def build_melwen_maps(profile):
+    # Algorithm I designed
+    #1. First, find the Melwen String Identifier.
+    #2. Skip 52 bytes after the null string char to go directly to the first Item
+    #3. For each of the 5 Items, should begin with 01 00 00 00. Locate the 01 00 00 00, then skip the next 4 bytes, should now be on a char[]. Find the nearest 00 from here to locate the null string char. Then, skip 148 bytes to go to the next item. Repeat for all 5 items to skip past the 5 items.
+    #4. After having navigated the 5 items, seek the nearest 01 00 00 00 FF FF FF FF.
+    #5. From there, ignore the next 149 bytes, and you will be at the maps array.
+    """Navigate Melwen's equipment blocks to locate her map array."""
+    melwen_id = b"Melwen\x00"
+    start_idx = profile.find(melwen_id)
+    if start_idx == -1:
+        return None
+
+    # Skip 52 bytes after the null string char to reach the first Item
+    curr_idx = start_idx + len(melwen_id) + 52
+    
+    # Traverse the 5 equipped items
+    for _ in range(5):
+        curr_idx = profile.find(b"\x01\x00\x00\x00", curr_idx)
+        if curr_idx == -1:
+            return None
+        # Skip 01 00 00 00 and the 4-byte Equipment Slot
+        curr_idx += 8 
+        # Find nearest 00 for the dynamic String Identifier
+        curr_idx = profile.find(b"\x00", curr_idx)
+        if curr_idx == -1:
+            return None
+        # Skip the null terminator and the 148 misc bytes
+        curr_idx += 1 + 148 
+        
+    # Seek the nearest 01 00 00 00 FF FF FF FF
+    # In hindsight, should have seeked to the 2nd 01 00 00 00 FF FF FF FF after
+    # then apply 149 byte offset
+    anchor = profile.find(MAP_ANCHOR, curr_idx)
+    if anchor == -1:
+        return None
+        
+    # Ignore the next 149 bytes to land on the maps array
+    # +157 cuz there is apparently 2 unused 01 00 00 00 FF FF FF FF
+    # 157 is the difference between the 2nd last and last ones
+    start = anchor + len(MAP_ANCHOR) + MAP_ARRAY_AFTER + 157
+    if start + len(MAP_NAMES) * MAP_ENTRY > len(profile):
+        return None
+        
+    maps = []
+    for i, name in enumerate(MAP_NAMES):
+        base = start + i * MAP_ENTRY
+        extra = (GARDBRIDGE_NOTE,) if name == "Gardbridge" else ()
+        maps.append({
+            "name": name,
+            "fields": [
+                ("Number of Stars", base, (STARS_NOTE,) + extra),
+                ("Mythic+ R number", base + 4, (RANK_NOTE,) + extra),
+            ],
+        })
+    return maps
 
 
 # ---------------------------------------------------------------- editing
@@ -475,9 +533,9 @@ def field_page(profile, baseline, title, fields, intro=None):
         edit_field(profile, baseline, title, label, offset, notes)
 
 
-def maps_page(profile, baseline, maps):
+def maps_page(profile, baseline, maps, title="GENERAL MAPS"):
     while True:
-        header("GENERAL MAPS")
+        header(title)
         print(THIN)
         for n, entry in enumerate(maps, 1):
             stars = preview(profile, baseline, entry["fields"][0][1])
@@ -490,11 +548,11 @@ def maps_page(profile, baseline, maps):
         if choice is None or choice == len(maps) + 1:
             return
         entry = maps[choice - 1]
-        field_page(profile, baseline, "GENERAL MAPS > %s" % entry["name"],
+        field_page(profile, baseline, "%s > %s" % (title, entry["name"]),
                    entry["fields"])
 
 
-def main_menu(profile, baseline, heroes, maps, token_offset, state, commit):
+def main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset, state, commit):
     """Returns when the user exits. commit(profile) performs the save."""
     status = ""
     while True:
@@ -511,21 +569,31 @@ def main_menu(profile, baseline, heroes, maps, token_offset, state, commit):
             row = "  %d. %s Stats" % (n, name)
             print(row.ljust(28) + note if note else row)
 
-        map_offsets = [off for entry in maps for _, off, _ in entry["fields"]]
-        changed = count_pending(profile, baseline, map_offsets)
+        gen_map_offsets = [off for entry in general_maps for _, off, _ in entry["fields"]] if general_maps else []
+        changed = count_pending(profile, baseline, gen_map_offsets)
         note = ("(%d unsaved change%s)"
                 % (changed, "" if changed == 1 else "s")) if changed else ""
         row = "  4. General Maps"
         print(row.ljust(28) + note if note else row)
 
-        print("  5. Save")
-        print("  6. Exit")
+        mel_map_offsets = [off for entry in melwen_maps for _, off, _ in entry["fields"]] if melwen_maps else []
+        changed = count_pending(profile, baseline, mel_map_offsets)
+        note = ("(%d unsaved change%s)"
+                % (changed, "" if changed == 1 else "s")) if changed else ""
+        row = "  5. Melwen Maps"
+        if melwen_maps:
+            print(row.ljust(28) + note if note else row)
+        else:
+            print(row.ljust(28) + "(Not found)")
+
+        print("  6. Save")
+        print("  7. Exit")
         if status:
             print("\n" + status)
 
-        choice = menu_choice(6)
+        choice = menu_choice(7)
         if choice is None:
-            choice = 6
+            choice = 7
         status = ""
 
         if choice == 1:
@@ -537,16 +605,19 @@ def main_menu(profile, baseline, heroes, maps, token_offset, state, commit):
                        heroes[name]["fields"], GUIDANCE)
 
         elif choice == 4:
-            maps_page(profile, baseline, maps)
+            maps_page(profile, baseline, general_maps, "GENERAL MAPS")
+            
+        elif choice == 5 and melwen_maps:
+            maps_page(profile, baseline, melwen_maps, "MELWEN MAPS")
 
-        elif choice == 5:
+        elif choice == 6:
             status = commit(profile)
             if status is None:
                 baseline[:] = profile
                 status = ""
 
         else:
-            all_offsets = [token_offset] + map_offsets
+            all_offsets = [token_offset] + gen_map_offsets + mel_map_offsets
             for hero in heroes.values():
                 all_offsets += [off for _, off, _ in hero["fields"]]
             changed = count_pending(profile, baseline, all_offsets)
@@ -611,9 +682,11 @@ def main():
     if heroes is None:
         return
 
-    maps = build_maps(profile)
-    if maps is None:
+    general_maps = build_maps(profile)
+    if general_maps is None:
         return
+        
+    melwen_maps = build_melwen_maps(profile)
 
     baseline = bytearray(profile)
     token_offset = heroes["General"]["base"] - TOKEN_BACK
@@ -627,7 +700,7 @@ def main():
             return "  Save failed, so the save file was left alone: %s" % error
         return None
 
-    main_menu(profile, baseline, heroes, maps, token_offset, state, commit)
+    main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset, state, commit)
 
 
 if __name__ == "__main__":
