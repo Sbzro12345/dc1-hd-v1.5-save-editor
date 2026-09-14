@@ -41,17 +41,12 @@ Available Skill Points:
 - e.g. for General:  47 65 6E 65 72 61 6C 00 [12 bytes] [Available Skill Points]
 
 
-Skills:
+Skills [36 bytes]:
 - each stat takes up 4 bytes (DWORD)
-- for General: starts 16 bytes after the Hero Identifier i.e. skip 16 bytes after the end of null string terminator
-- for General: 47 65 6E 65 72 61 6C 00 [16 bytes] [Skill1] [Skill2] [Skill3] [Skill4] [Skill5] [Skill6]
-- for Melwen: starts 28 bytes after the Hero Identifier
+- General Skills1-3 don't affect Melwen, and vice versa
+- for General: starts 16 bytes after the Hero Identifier, while it is 28 bytes for Melwen
+- for General: 47 65 6E 65 72 61 6C 00 [16 bytes] [Skill1] [Skill2] [Skill3] [Skill4] [Skill5] [Skill6] [12 bytes]
 - for Melwen: 4D 65 6C 77 65 6E 00 [28 bytes] [Skill4] [Skill5] [Skill6] [Skill1] [Skill2] [Skill3]
-
-
-
-???
-12 bytes after Skill6
 
 
 Equipped Headpiece
