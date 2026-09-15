@@ -6,10 +6,14 @@ NOTE: (0xXY) means mandatory Value of 0xXY, for hex digits XY
 # Mandatory Target FF FF FF FF
 01 00 00 00 - Extra Gate Defense (Anti-cheat flags for Values > 49)
 02 00 00 00 - Extra Initial Gold (Anti-cheat flags for Values > 49)
-C3 0D 00 00 - Sell items back for 90% purchase price (IAP Accessory) (0)
-C4 0D 00 00 - Double Gate Defense (IAP Accessory) (0)
 D1 0B 00 00 - Cloak of Invisibility (0)
 D5 0B 00 00 - Healing Potion (0)
+00 0D 00 00 - Change Cost of Armageddon Spell (use negative DWORD value to make it cheaper)
+01 0D 00 00 - Change Cost of Healing Spell (use negative DWORD value to make it cheaper)
+C3 0D 00 00 - Sell items back for 90% purchase price (IAP Accessory) (0)
+C4 0D 00 00 - Double Gate Defense (IAP Accessory) (0)
+
+# Lowest Level Melwen Gear
 D6 0B 00 00 - Lightning Wands (Melwen Exclusive) (-1)
 D7 0B 00 00 - Ice Wands (Melwen Exclusive) (-1)
 D8 0B 00 00 - Healing Spell (Melwen Exclusive) (0x64)
@@ -18,11 +22,11 @@ DD 0B 00 00 - Meteor Shower Spell (Melwen Exclusive) (0x14)
 
 
 # IAP Gear, Mandatory Target FF FF FF FF
-AD 0F 00 00 - IAP Headgear, Weapon and Chestpiece
+AD 0F 00 00 - Gives IAP set bonuses
 Mandatory Value 0-7 for each of the IAP sets
-0: General Red Pack
-1: General Blue Pack
-2: General Guardian Pack
+0: Rage for all infantry (General Red Pack)
+1: Vampiric for all infantry (General Blue Pack)
+2: -50% Warrior Build and Upgrade cost (General Guardian Pack)
 3: General Destroyer Pack
 4: Melwen Red Pack
 5: Melwen Blue Pack
@@ -31,10 +35,6 @@ Mandatory Value 0-7 for each of the IAP sets
 
 
 # Mandatory Target FE FF FF FF
-C5 0D 00 00 - Double Tokens earned from victory (IAP Accessory) (0)
-C6 0D 00 00 - Double Experience earned from battle (IAP Accessory) (0)
-DB 0B 00 00 - Regalia of Dominion (0)
-DC 0B 00 00 - Merry Roper's Ale Bottle (0)
 EB 03 00 00 - Combat (General Exclusive) (Anti-cheat flags for Values > 49)
 EC 03 00 00 - Morale (General Exclusive) (Anti-cheat flags for Values > 49)
 EE 03 00 00 - Cunning (General Exclusive) (Anti-cheat flags for Values > 49)
@@ -44,14 +44,13 @@ F2 03 00 00 - Mage Commander (Anti-cheat flags for Values > 49)
 F3 03 00 00 - Sorcery (Melwen Exclusive) (Anti-cheat flags for Values > 49)
 F4 03 00 00 - Wisdom (Melwen Exclusive) (Anti-cheat flags for Values > 49)
 F5 03 00 00 - Power (Melwen Exclusive) (Anti-cheat flags for Values > 49)
+DB 0B 00 00 - Regalia of Dominion (0)
+DC 0B 00 00 - Merry Roper's Ale Bottle (0)
+C5 0D 00 00 - Double Tokens earned from victory (IAP Accessory) (0)
+C6 0D 00 00 - Double Experience earned from battle (IAP Accessory) (0)
 
 
 # Use Target FE FF FF FF if referring to Heroes
-CD 0B 00 00 - Rage (0)
-CE 0B 00 00 - Greed(0)
-CF 0B 00 00 - Poison Attack (0)
-D0 0B 00 00 - Poison Immunity (0)
-D2 0B 00 00 - Golem Slayer (0)
 DD 07 00 00 - Attack Rating (Anti-cheat flags for Values > 2000)
 DE 07 00 00 - Attack Radius (Anti-cheat flags for Values > 119)
 DF 07 00 00 - Health Rating (Anti-cheat flags for Values > 2000)
@@ -61,6 +60,25 @@ E5 07 00 00 - Spell Power (Anti-cheat flags for Values > 2000)
 E6 07 00 00 - Mana Points (Anti-cheat flags for Values > 1000)
 E7 07 00 00 - Mana Recovery Rate (Anti-cheat flags for Values > 1000)
 E8 07 00 00 - Resist Rating (Anti-cheat flags for Values > 1000)
+
+CD 0B 00 00 - Rage (0)
+CE 0B 00 00 - Greed(0)
+CF 0B 00 00 - Poison Attack (0)
+D0 0B 00 00 - Poison Immunity (0)
+D2 0B 00 00 - Golem Slayer (0)
+
+FB 0C 00 00 - Alpha Rage (0)
+FC 0C 00 00 - Eternal Rage (0)
+FD 0C 00 00 - Vampiric (0)
+FE 0C 00 00 - Spectral (0)
+FF 0C 00 00 - Blocking (0)
+03 0D 00 00 - Bravery (removes Cowardice) (0)
+04 0D 00 00 - Magic Cloning (+1 Mini Ogre at Level 3, only affects Mini Ogre) (0)
+
+
+# Mandatory Target 12 00 00 00. Does not work with 0x0F to target Mages
+E1 0B 00 00 - Unit fires bolts of lightning at up to 15 targets (0x04)
+E2 0B 00 00 - Unit fires 18 bolts of Ice (0x04)
 
 
 # Useless Effects

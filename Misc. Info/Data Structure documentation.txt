@@ -93,7 +93,7 @@ Equipment
 - String Identifier (Dynamic length)
 - Followed by 148 misc. bytes
   - Sprite Number [4 Bytes]
-  - Token Value [4 Bytes] - FF FF FF FF means Quest Item
+  - Token Value [4 Bytes] - FF FF FF FF means Quest Item, FE FF FF FF means IAP Item
   - Prefix Count [4 Bytes] - Naturally no cap.
   - Suffix Count [4 Bytes] - Naturally capped at 1. Save editor can lift cap.
 
