@@ -71,7 +71,7 @@ DWORD_MAX = 2147483647
 QUIT_WORDS = {"q", "quit", "exit"}
 RULE = "=" * 72
 THIN = "-" * 72
-PICK = "\nPress the corresponding number and then Enter: "
+PICK = "\nPress the corresponding number (or Q to go back/quit) and then Enter: "
 TITLE = "Defender Chronicles HD v1.5 save editor"
 
 GUIDANCE = """\
@@ -398,7 +398,7 @@ def build_heroes(profile):
             extra = SKILL_WARNINGS.get(label)
             notes = (SKILL_NOTE, extra) if extra else (SKILL_NOTE,)
             fields.append((label, end + after, notes))
-        heroes[name] = {"base": base, "fields": fields}
+        heroes[name] = {"base": base, "end": end, "fields": fields}
 
     return heroes
 
@@ -495,6 +495,587 @@ def build_melwen_maps(profile):
     return maps
 
 
+# ---------------------------------------------------------------- equipment
+
+ITEM_SENTINEL = b"\x01\x00\x00\x00"
+ITEM_TAIL = 148
+EQUIP_AFTER = 52
+EQUIP_SLOTS = (
+    ("Headgear", 0),
+    ("Weapon", 1),
+    ("Chestpiece", 2),
+    ("Accessory 1", 3),
+    ("Accessory 2", 3),
+)
+UNEQUIPPED = -1
+
+# Field order inside the 148-byte tail, as index * 4 bytes from the tail start.
+ITEM_FIELDS = (
+    ("Sprite Number", 0),
+    ("Token Value", 1),
+    ("Prefix Count", 2),
+    ("Suffix Count", 3),
+    ("Reputation Tier", 4),
+    ("Grade", 5),
+    ("Which Hero", 6),
+)
+
+SUFFIX_OPTIONS = (("0", 0), ("1", 1))
+REPUTATION_OPTIONS = (
+    ("Rusty", 0),
+    ("None", 1),
+    ("Superior", 2),
+    ("Elite", 3),
+    ("Legendary", 4),
+    ("Mythic", 5),
+    ("Demigod", 6),
+)
+GRADE_OPTIONS = (
+    ("None", 0),
+    ("Defective", 1),
+    ("Exceptional", 2),
+    ("Flawless", 3),
+    ("Masterpiece", 4),
+    ("Ultimate", 5),
+)
+HERO_OPTIONS = (("General Only", 0b0001), ("Melwen Only", 0b0100), ("Both Heroes", 0b0101))
+PRESET_HERO_BIT = {"General": 0b0001, "Melwen": 0b0100}
+SLOT_OPTIONS = (
+    ("Headpiece", 0),
+    ("Weapon", 1),
+    ("Chestpiece", 2),
+    ("Accessory", 3),
+    ("No Item", -1),
+)
+
+TOKEN_VALUE_NOTE = """\
+  Note: use -1 to set the item as a Quest Item."""
+
+
+def hero_label(mask):
+    """Only bits 0 and 2 matter. Elwin and Lovell are not in the game."""
+    general = mask & 0b0001
+    melwen = mask & 0b0100
+    if general and melwen:
+        return "Both Heroes"
+    if general:
+        return "General Only"
+    if melwen:
+        return "Melwen Only"
+    return "Neither"
+
+# Each preset is the whole record: slot, name, the seven tail DWORDs, then the
+# effect entries. Unlisted effect entries are zero-filled out to 10.
+PRESETS = (
+    {"name": "Argonath's Full Helm", "slot": 0, "sprite": 0x40, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Red Pack)",
+     "effects": ((0x07E0, -2, 0xB4), (0x0CFB, 0x05, 0), (0x0FAD, -1, 0))},
+    {"name": "Branston's Full Helm", "slot": 0, "sprite": 0x43, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Blue Pack)",
+     "effects": ((0x07E0, -2, 0xA0), (0x0CFD, 0x05, 0), (0x0FAD, -1, 1))},
+    {"name": "Leandro's Spike Helm", "slot": 0, "sprite": 0x46, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Guardian Pack)",
+     "effects": ((0x07E0, -2, 200), (0x07E3, 0x04, 2), (0x0FAD, -1, 2))},
+    {"name": "Hiram's Cap", "slot": 0, "sprite": 0x49, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Destroyer Pack)",
+     "effects": ((0x07E0, -2, 0x96), (0x0BCF, 0x0C, 0), (0x0FAD, -1, 3))},
+    {"name": "Myrtharnith's Mask", "slot": 0, "sprite": 0x4C, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Red Pack)",
+     "effects": ((0x0BE1, 0x12, 4), (0x07E5, -2, 0x21C), (0x0FAD, -1, 4))},
+    {"name": "Orleaear's Circlet", "slot": 0, "sprite": 0x4F, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Blue Pack)",
+     "effects": ((0x0BE2, 0x12, 4), (0x07E5, -2, 0x1E0), (0x0FAD, -1, 5))},
+    {"name": "Tyrghymn's Headband", "slot": 0, "sprite": 0x52, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Industrious Pack)",
+     "effects": ((0x0D04, 0x1A, 0), (0x07E5, -2, 0x1FE), (0x0FAD, -1, 6))},
+    {"name": "Killevalsa's Barrette", "slot": 0, "sprite": 0x55, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Avarice Pack)",
+     "effects": ((0x0D03, 0x17, 0), (0x07E5, -2, 0x23A), (0x0FAD, -1, 7))},
+    {"name": "Regalia of Dominion", "slot": 0, "sprite": 0x32, "token": -1,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0BDB, -2, 0),)},
+    {"name": "Overlord's Helm", "slot": 0, "sprite": 0x20, "token": 0x02EE,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x03,
+     "effects": ((0x03EB, -2, 0x0A), (0x03EC, -2, 0x0A), (0x03EF, -2, 0x0A),
+                 (0x03F0, -2, 0x0A), (0x03F2, -2, 0x0A), (0x07E0, -2, 0x50))},
+    {"name": "Devil's Helm", "slot": 0, "sprite": 0x21, "token": 0x029A,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x03,
+     "effects": ((0x03EB, -2, 0x10), (0x03EC, -2, -6), (0x03EE, -2, 0x10),
+                 (0x07DD, -2, 0x42), (0x07E0, -2, 0x42), (0x0BCD, -2, 0),
+                 (0x0BCE, -2, 0), (0x0BCF, -2, 0))},
+    
+    {"name": "Argonath's Blade", "slot": 1, "sprite": 0x3F, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Red Pack)",
+     "effects": ((0x07DD, -2, 0x1C2), (0x0CFB, -2, 0), (0x0FAD, -1, 0))},
+    {"name": "Branston's Greatsword", "slot": 1, "sprite": 0x42, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Blue Pack)",
+     "effects": ((0x07DD, -2, 0x1E0), (0x0CFD, -2, 0), (0x0FAD, -1, 1))},
+    {"name": "Leandro's Long Dagger", "slot": 1, "sprite": 0x45, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Guardian Pack)",
+     "effects": ((0x07DD, -2, 0x1A4), (0x07E3, -2, 2), (0x0FAD, -1, 2))},
+    {"name": "Hiram's Scimitar", "slot": 1, "sprite": 0x48, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Destroyer Pack)",
+     "effects": ((0x07DD, -2, 500), (0x0BCF, -2, 0), (0x0FAD, -1, 3))},
+    {"name": "Myrtharnith's Lightning Wand", "slot": 1, "sprite": 0x4B, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Red Pack)",
+     "effects": ((0x0BDF, -1, 0), (0x07DD, -2, 0x1D8), (0x03F3, -2, 20), (0x0FAD, -1, 4))},
+    {"name": "Orleaear's Ice Wand", "slot": 1, "sprite": 0x4E, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Blue Pack)",
+     "effects": ((0x0BE0, -1, 0), (0x07DD, -2, 0x181), (0x03F3, -2, 20), (0x0FAD, -1, 5))},
+    {"name": "Tyrghymn's Ice Wand", "slot": 1, "sprite": 0x51, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Industrious Pack)",
+     "effects": ((0x0BE0, -1, 0), (0x07DD, -2, 0x1C7), (0x03F3, -2, 20), (0x0FAD, -1, 6))},   
+    {"name": "Killevalsa's Lightning Wand", "slot": 1, "sprite": 0x54, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Avarice Pack)",
+     "effects": ((0x0BDF, -1, 0), (0x07DD, -2, 0x20D), (0x03F3, -2, 20), (0x0FAD, -1, 7))},
+    {"name": "Tahl Asel", "slot": 1, "sprite": 0x1D, "token": 0x8C,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "effects": ((0x07DD, -2, 0x78), (0x0BD2, -2, 0))},
+    {"name": "True Tahl Asel", "slot": 1, "sprite": 0x1D, "token": -1,
+     "prefix": 3, "suffix": 1, "rep": 1, "grade": 5, "hero": 0x01,
+     "note": "(Tahl Asel, but with Golem Slayer for all infantry and mage units)",
+     "effects": ((0x07DD, -2, 0x78), (0x0BD2, -2, 0), (0x0BD2, 0x04, 0), (0x0BD2, 0x05, 0), (0x0BD2, 0x13, 0), (0x0BD2, 0x19, 0), (0x0BD2, 0x0F, 0), (0x0BD2, 0x12, 0), (0x0BD2, 0x17, 0), (0x0BD2, 0x1A, 0))},
+
+    {"name": "Argonath's Breastplate", "slot": 2, "sprite": 0x41, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Red Pack)",
+     "effects": ((0x07E0, -2, 0xF0), (0x0CFC, -2, 0), (0x0FAD, -1, 0))},
+    {"name": "Branston's Breastplate", "slot": 2, "sprite": 0x44, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Blue Pack)",
+     "effects": ((0x07E0, -2, 0xD2), (0x0CFE, -2, 0), (0x0FAD, -1, 1))},
+    {"name": "Leandro's Platemail", "slot": 2, "sprite": 0x47, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Guardian Pack)",
+     "effects": ((0x07E0, -2, 200), (0x0CFF, -2, 0), (0x0FAD, -1, 2))},
+    {"name": "Hiram's Platemail", "slot": 2, "sprite": 0x4A, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
+     "note": "(IAP General Destroyer Pack)",
+     "effects": ((0x07E0, -2, 0x10E), (0x0BD0, -2, 0), (0x0FAD, -1, 3))},
+    {"name": "Myrtharnith's Sun Robe", "slot": 2, "sprite": 0x4D, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Red Pack)",
+     "effects": ((0x0D00, -1, -40), (0x07E6, -2, 200), (0x0FAD, -1, 4))},
+    {"name": "Orleaear's Moon Robe", "slot": 2, "sprite": 0x50, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Blue Pack)",
+     "effects": ((0x0D01, -1, -20), (0x07E6, -2, 240), (0x0FAD, -1, 5))},
+    {"name": "Tyrghymn's Witch Robe", "slot": 2, "sprite": 0x53, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Industrious Pack)",
+     "effects": ((0x07E6, -2, 220), (0x07E7, -2, 30), (0x0FAD, -1, 6))},     
+    {"name": "Killevalsa's Sorcerer Robe", "slot": 2, "sprite": 0x56, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "note": "(IAP Melwen Avarice Pack)",
+     "effects": ((0x0D02, -1, -30), (0x07E6, -2, 210), (0x03F5, -2, 10), (0x0FAD, -1, 7))},
+    
+    {"name": "Imperial Seal", "slot": 3, "sprite": 0x57, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0DC3, -1, 0),)},
+    {"name": "Archangel Statue", "slot": 3, "sprite": 0x59, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0DC4, -1, 0),)},
+    {"name": "Golden Goose", "slot": 3, "sprite": 0x5A, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0DC5, -2, 0),)},
+    {"name": "Book of War", "slot": 3, "sprite": 0x58, "token": -2,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0DC6, -2, 0),)},
+    {"name": "Cloak of Invisibility", "slot": 2, "sprite": 0x13, "token": 0x05,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0BD1, -1, 0),)},
+    {"name": "Merry Roper's Ale Bottle", "slot": 3, "sprite": 0x33, "token": -1,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x0BDC, -2, 0), (0, -2, 0))},
+    {"name": "Endless Purse of Gold", "slot": 3, "sprite": 0x12, "token": 0x11,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x02, -1, 0x0A),)},
+    {"name": "Vahn's Amulet", "slot": 3, "sprite": 0x14, "token": 0x21,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x07DF, -2, 0x03E8),)},
+    {"name": "Juleck's Amulet", "slot": 3, "sprite": 0x16, "token": 0x16,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "effects": ((0x07DF, -2, 0x0258),)},
+)
+
+
+RENAME_NOTE = "(Renamed to remove hardcoded Reputation requirement)"
+
+
+def _renamed(source, new_name):
+    """A copy of a preset under a name the reputation check will not match."""
+    copy = dict(source)
+    copy["name"] = new_name
+    copy["note"] = RENAME_NOTE
+    return copy
+
+
+def _with_renames(presets):
+    """Place each renamed duplicate directly below the item it copies."""
+    renames = {
+        "Regalia of Dominion": "Regalia of Dominian",
+        "Tahl Asel": "Thal Asel",
+        "Merry Roper's Ale Bottle": "Merry Roper'z Ale Bottle",
+    }
+    out = []
+    for preset in presets:
+        out.append(preset)
+        if preset["name"] in renames:
+            out.append(_renamed(preset, renames[preset["name"]]))
+    return tuple(out)
+
+
+PRESETS = _with_renames(PRESETS)
+
+
+def preset_record(preset):
+    """Assemble a preset into the full on-disk record."""
+    tail = struct.pack("<7i", preset["sprite"], preset["token"], preset["prefix"],
+                       preset["suffix"], preset["rep"], preset["grade"],
+                       preset["hero"])
+    for effect in preset["effects"]:
+        tail += struct.pack("<3i", *effect)
+    tail += b"\x00" * (ITEM_TAIL - len(tail))
+    return (ITEM_SENTINEL + struct.pack("<i", preset["slot"])
+            + preset["name"].encode("latin-1") + b"\x00" + tail)
+
+
+def item_name_bounds(buf, start):
+    """Offsets of the string identifier: its first byte and its terminator."""
+    nul = buf.find(b"\x00", start + 8)
+    return start + 8, nul
+
+
+def item_end(buf, start):
+    return item_name_bounds(buf, start)[1] + 1 + ITEM_TAIL
+
+
+def item_name(buf, start):
+    first, nul = item_name_bounds(buf, start)
+    return bytes(buf[first:nul]).decode("latin-1")
+
+
+def item_slot(buf, start):
+    return read_dword(buf, start + 4)
+
+
+def item_field_offset(buf, start, index):
+    return item_name_bounds(buf, start)[1] + 1 + index * 4
+
+
+def item_changed(profile, item):
+    return bytes(profile[item["start"]:item_end(profile, item["start"])]) \
+        != item["original"]
+
+
+def item_preview(profile, item, index):
+    """Current value of a tail field, or 'old -> new' against the original."""
+    new = read_dword(profile, item_field_offset(profile, item["start"], index))
+    old = read_dword(item["original"], item_field_offset(item["original"], 0, index))
+    return "%d" % new if old == new else "%d -> %d" % (old, new)
+
+
+def build_equipment(profile, heroes):
+    """The five equipment records following each hero block."""
+    equip = {}
+    for name in ("General", "Melwen"):
+        pos = heroes[name]["end"] + EQUIP_AFTER
+        slots = []
+        for _ in EQUIP_SLOTS:
+            if profile[pos:pos + 4] != ITEM_SENTINEL:
+                return None
+            first, nul = item_name_bounds(profile, pos)
+            if nul == -1:
+                return None
+            end = nul + 1 + ITEM_TAIL
+            if end > len(profile):
+                return None
+            slots.append({"start": pos, "original": bytes(profile[pos:end])})
+            pos = end
+        equip[name] = slots
+    return equip
+
+
+def refresh_equipment(profile, equipment):
+    """Re-snapshot every record so a saved change stops counting as pending."""
+    if not equipment:
+        return
+    for slots in equipment.values():
+        for item in slots:
+            item["original"] = bytes(
+                profile[item["start"]:item_end(profile, item["start"])])
+
+
+def shift_bundle(bundle, pos, delta):
+    """Move every cached offset at or past pos, after a length change."""
+    def s(off):
+        return off + delta if off >= pos else off
+
+    bundle["token"] = s(bundle["token"])
+    for hero in bundle["heroes"].values():
+        hero["base"] = s(hero["base"])
+        hero["end"] = s(hero["end"])
+        hero["fields"] = [(l, s(o), n) for l, o, n in hero["fields"]]
+    for key in ("gmaps", "mmaps"):
+        if bundle[key]:
+            for entry in bundle[key]:
+                entry["fields"] = [(l, s(o), n) for l, o, n in entry["fields"]]
+    if bundle["equip"]:
+        for slots in bundle["equip"].values():
+            for item in slots:
+                item["start"] = s(item["start"])
+
+
+def splice(profile, baseline, bundle, a, b, new):
+    """Replace profile[a:b], keeping baseline the same length and aligned."""
+    delta = len(new) - (b - a)
+    profile[a:b] = new
+    baseline[a:b] = new
+    if delta:
+        shift_bundle(bundle, b, delta)
+
+
+def pause(message):
+    print("\n" + message)
+    try:
+        input("\n  Press Enter to continue: ")
+    except (EOFError, KeyboardInterrupt):
+        pass
+
+
+def choose_dword(profile, page, label, offset, options):
+    """Pick a value from a fixed list rather than typing one."""
+    header("%s > %s" % (page, label))
+    print(THIN)
+    current_val = read_dword(profile, offset)
+    current_str = next((text for text, val in options if val == current_val), str(current_val))
+    print("  Current value: %s" % current_str)
+    print()
+    for n, (text, _) in enumerate(options, 1):
+        print("  %d. %s" % (n, text))
+    print("  %d. Back" % (len(options) + 1))
+
+    choice = menu_choice(len(options) + 1)
+    if choice is None or choice == len(options) + 1:
+        return
+    write_dword(profile, offset, options[choice - 1][1])
+
+
+def edit_item_name(profile, baseline, bundle, page, item):
+    first, nul = item_name_bounds(profile, item["start"])
+    header("%s > Name" % page)
+    print(THIN)
+    current = bytes(profile[first:nul]).decode("latin-1")
+    print("  Current name: %s" % (current if current else "(empty)"))
+
+    answer = ask("\n  Enter the new name, or Q to cancel: ")
+    if answer is None:
+        return
+    try:
+        raw = answer.encode("latin-1")
+    except UnicodeEncodeError:
+        pause("  That name uses characters the game cannot store.")
+        return
+    splice(profile, baseline, bundle, first, nul + 1, raw + b"\x00")
+
+
+def delete_item(profile, baseline, bundle, item):
+    """Overwrite the item with an unequipped slot and zeroed fields."""
+    record = ITEM_SENTINEL + struct.pack("<i", -1) + b"\x00" * (1 + ITEM_TAIL)
+    splice(profile, baseline, bundle, item["start"], item_end(profile, item["start"]), record)
+
+
+def preset_page(profile, baseline, bundle, page, item, hero, expected_slot):
+    """Replace the whole record with a preset that fits this slot and hero."""
+    bit = PRESET_HERO_BIT[hero]
+    matching = [p for p in PRESETS
+                if p["slot"] == expected_slot and p["hero"] & bit]
+
+    header("%s > Preset Items" % page)
+    print(THIN)
+    if not matching:
+        pause("  No presets are available for this slot.")
+        return
+    for n, preset in enumerate(matching, 1):
+        note = preset.get("note")
+        print("  %d. %s%s" % (n, preset["name"], " %s" % note if note else ""))
+    print("  %d. Back" % (len(matching) + 1))
+
+    choice = menu_choice(len(matching) + 1)
+    if choice is None or choice == len(matching) + 1:
+        return False # <-- Now returns False instead of None
+    record = preset_record(matching[choice - 1])
+    splice(profile, baseline, bundle, item["start"],
+           item_end(profile, item["start"]), record)
+    return True # <-- Added to signal a successful edit
+
+
+def manual_editing_page(profile, baseline, bundle, page, item):
+    rep_map = {v: k for k, v in REPUTATION_OPTIONS}
+    grade_map = {v: k for k, v in GRADE_OPTIONS}
+    slot_map = {v: k for k, v in SLOT_OPTIONS}
+    suffix_map = {v: k for k, v in SUFFIX_OPTIONS}
+    
+    header("%s > WARNING" % page)
+    print(THIN)
+    print("  Editing values manually, especially an unequipped slot,")
+    print("  can result in a corrupted record and brick your save.")
+    print("  Only proceed if you know exactly what you are doing.")
+    print()
+    print("  1. I understand, continue")
+    print("  2. Go back")
+    
+    if menu_choice(2) != 1:
+        return
+
+    while True:
+        header("%s > Manual Editing" % page)
+        print(THIN)
+        print("  1. %-20s %s" % ("Name", item_name(profile, item["start"]) or "(empty)"))
+        
+        raw_new_slot = item_slot(profile, item["start"])
+        raw_old_slot = item_slot(baseline, item["start"])
+        str_new_slot = slot_map.get(raw_new_slot, str(raw_new_slot))
+        str_old_slot = slot_map.get(raw_old_slot, str(raw_old_slot))
+        slot_shown = str_new_slot if raw_old_slot == raw_new_slot else "%s -> %s" % (str_old_slot, str_new_slot)
+        
+        print("  2. %-20s %s" % ("Equipment Slot", slot_shown))
+        
+        for n, (name, idx) in enumerate(ITEM_FIELDS, 3):
+            raw_new = read_dword(profile, item_field_offset(profile, item["start"], idx))
+            raw_old = read_dword(item["original"], item_field_offset(item["original"], 0, idx))
+            
+            if name == "Which Hero":
+                shown = hero_label(raw_new) if raw_old == raw_new else "%s -> %s" % (hero_label(raw_old), hero_label(raw_new))
+            elif name == "Reputation Tier":
+                str_new = rep_map.get(raw_new, str(raw_new))
+                str_old = rep_map.get(raw_old, str(raw_old))
+                shown = str_new if raw_old == raw_new else "%s -> %s" % (str_old, str_new)
+            elif name == "Grade":
+                str_new = grade_map.get(raw_new, str(raw_new))
+                str_old = grade_map.get(raw_old, str(raw_old))
+                shown = str_new if raw_old == raw_new else "%s -> %s" % (str_old, str_new)
+            elif name == "Suffix Count":
+                str_new = suffix_map.get(raw_new, str(raw_new))
+                str_old = suffix_map.get(raw_old, str(raw_old))
+                shown = str_new if raw_old == raw_new else "%s -> %s" % (str_old, str_new)
+            else:
+                shown = item_preview(profile, item, idx)
+                
+            print("  %d. %-20s %s" % (n, name, shown))
+        
+        print("  10. Delete Item")
+        print("  11. Back")
+
+        choice = menu_choice(11)
+        if choice is None or choice == 11:
+            return
+        if choice == 1:
+            edit_item_name(profile, baseline, bundle, page, item)
+        elif choice == 2:
+            choose_dword(profile, page, "Equipment Slot", item["start"] + 4, SLOT_OPTIONS)
+        elif choice == 10:
+            delete_item(profile, baseline, bundle, item)
+            #return
+        else:
+            name, idx = ITEM_FIELDS[choice - 3]
+            offset = item_field_offset(profile, item["start"], idx)
+            if name == "Suffix Count":
+                choose_dword(profile, page, name, offset, SUFFIX_OPTIONS)
+            elif name == "Reputation Tier":
+                choose_dword(profile, page, name, offset, REPUTATION_OPTIONS)
+            elif name == "Grade":
+                choose_dword(profile, page, name, offset, GRADE_OPTIONS)
+            elif name == "Which Hero":
+                choose_dword(profile, page, name, offset, HERO_OPTIONS)
+            else:
+                notes = (TOKEN_VALUE_NOTE,) if name == "Token Value" else ()
+                edit_field(profile, baseline, page, name, offset, notes)
+
+
+def item_page(profile, baseline, bundle, hero, index, item):
+    label, slot_value = EQUIP_SLOTS[index]
+    page = "%s ITEMS > %s" % (hero.upper(), label)
+
+    while True:
+        header(page)
+        print(THIN)
+        print("  1. Preset Items")
+        print("  2. Manual Editing")
+        print("  3. Delete Item")
+        print("  4. Back")
+
+        choice = menu_choice(4)
+        if choice is None or choice == 4:
+            return
+        
+        if choice == 1:
+            # Check for the True flag from preset_page
+            if preset_page(profile, baseline, bundle, page, item, hero, slot_value):
+                return
+        elif choice == 2:
+            manual_editing_page(profile, baseline, bundle, page, item)
+            return
+        elif choice == 3:
+            delete_item(profile, baseline, bundle, item)
+            return # <-- Added so simple deletion bounces back a menu
+
+
+def items_page(profile, baseline, bundle, hero):
+    while True:
+        header("%s ITEMS" % hero.upper())
+        print(THIN)
+        slots = bundle["equip"][hero]
+        for n, ((label, _), item) in enumerate(zip(EQUIP_SLOTS, slots), 1):
+            if item_slot(profile, item["start"]) == UNEQUIPPED:
+                shown = "No Item"
+            else:
+                shown = item_name(profile, item["start"]) or "(empty)"
+            if item_changed(profile, item):
+                shown += "   (edited)"
+            print("  %d. %-14s %s" % (n, label, shown))
+        print("  %d. Back" % (len(slots) + 1))
+
+        choice = menu_choice(len(slots) + 1)
+        if choice is None or choice == len(slots) + 1:
+            return
+        item_page(profile, baseline, bundle, hero, choice - 1, slots[choice - 1])
+
+
+def equipment_page(profile, baseline, bundle):
+    while True:
+        header("EQUIPMENT EDITOR")
+        print(THIN)
+        for n, hero in enumerate(("General", "Melwen"), 1):
+            changed = sum(1 for item in bundle["equip"][hero]
+                          if item_changed(profile, item))
+            note = ("(%d edited)" % changed) if changed else ""
+            row = "  %d. %s Items" % (n, hero)
+            print(row.ljust(28) + note if note else row)
+        print("  3. Back")
+
+        choice = menu_choice(3)
+        if choice is None or choice == 3:
+            return
+        items_page(profile, baseline, bundle, "General" if choice == 1 else "Melwen")
+
+
 # ---------------------------------------------------------------- editing
 
 def edit_field(profile, baseline, page, label, offset, notes=()):
@@ -552,10 +1133,18 @@ def maps_page(profile, baseline, maps, title="GENERAL MAPS"):
                    entry["fields"])
 
 
-def main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset, state, commit):
+def main_menu(profile, baseline, bundle, state, commit):
     """Returns when the user exits. commit(profile) performs the save."""
     status = ""
     while True:
+        # Re-read every loop: editing an item name changes the payload length
+        # and shifts every offset after it.
+        heroes = bundle["heroes"]
+        general_maps = bundle["gmaps"]
+        melwen_maps = bundle["mmaps"]
+        equipment = bundle["equip"]
+        token_offset = bundle["token"]
+
         header("MAIN MENU", state["path"])
 
         print("  1. Token Count            %s"
@@ -586,14 +1175,23 @@ def main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset
         else:
             print(row.ljust(28) + "(Not found)")
 
-        print("  6. Save")
-        print("  7. Exit")
+        row = "  6. Equipment Editor"
+        if equipment:
+            changed = sum(1 for slots in equipment.values()
+                          for item in slots if item_changed(profile, item))
+            note = ("(%d edited)" % changed) if changed else ""
+            print(row.ljust(28) + note if note else row)
+        else:
+            print(row.ljust(28) + "(Not found)")
+
+        print("  7. Save")
+        print("  8. Exit")
         if status:
             print("\n" + status)
 
-        choice = menu_choice(7)
+        choice = menu_choice(8)
         if choice is None:
-            choice = 7
+            choice = 8
         status = ""
 
         if choice == 1:
@@ -610,10 +1208,14 @@ def main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset
         elif choice == 5 and melwen_maps:
             maps_page(profile, baseline, melwen_maps, "MELWEN MAPS")
 
-        elif choice == 6:
+        elif choice == 6 and equipment:
+            equipment_page(profile, baseline, bundle)
+
+        elif choice == 7:
             status = commit(profile)
             if status is None:
                 baseline[:] = profile
+                refresh_equipment(profile, equipment)
                 status = ""
 
         else:
@@ -621,6 +1223,9 @@ def main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset
             for hero in heroes.values():
                 all_offsets += [off for _, off, _ in hero["fields"]]
             changed = count_pending(profile, baseline, all_offsets)
+            if equipment:
+                changed += sum(1 for slots in equipment.values()
+                               for item in slots if item_changed(profile, item))
             if changed:
                 header("EXIT")
                 print(THIN)
@@ -649,8 +1254,8 @@ def save_plist(original_path, plist, profile):
     with open(temp, "wb") as handle:
         plistlib.dump(plist, handle, fmt=plistlib.FMT_BINARY)
 
-    backup = original_path + datetime.now().strftime(".%Y%m%d-%H%M%S.bak")
-    os.replace(original_path, backup)
+    #backup = original_path + datetime.now().strftime(".%Y%m%d-%H%M%S.bak")
+    #os.replace(original_path, backup)
     os.replace(temp, target)
     return target
 
@@ -688,8 +1293,16 @@ def main():
         
     melwen_maps = build_melwen_maps(profile)
 
+    equipment = build_equipment(profile, heroes)
+
     baseline = bytearray(profile)
-    token_offset = heroes["General"]["base"] - TOKEN_BACK
+    bundle = {
+        "heroes": heroes,
+        "gmaps": general_maps,
+        "mmaps": melwen_maps,
+        "equip": equipment,
+        "token": heroes["General"]["base"] - TOKEN_BACK,
+    }
     state = {"path": path}
 
     def commit(current):
@@ -700,7 +1313,7 @@ def main():
             return "  Save failed, so the save file was left alone: %s" % error
         return None
 
-    main_menu(profile, baseline, heroes, general_maps, melwen_maps, token_offset, state, commit)
+    main_menu(profile, baseline, bundle, state, commit)
 
 
 if __name__ == "__main__":
