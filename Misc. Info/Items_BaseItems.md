@@ -153,8 +153,6 @@ Items generate as blank slates with these exact base properties before any prefi
 | Steel Ring | 3 | 14 | *None* |
 | Amulet | 4 | 17 | *None* |
 | Silver Ring | 8 | 14 | *None* |
-| Orb of Healing | 10 | 42 | Healing Spell (Value 100), Mana Points +10 |
-| Talisman of Healing | 10 | 46 | Healing Spell (Value 100), Spell Power +20 |
 | Necklace | 10 | 16 | *None* |
 | Charm | 15 | 43 | *None* |
 | Imperial Ring | 18 | 13 | *None* |
@@ -162,8 +160,14 @@ Items generate as blank slates with these exact base properties before any prefi
 | Leather Bracer | 21 | 45 | *None* |
 | Bracelet | 24 | 47 | *None* |
 | Adamantium Ring | 30 | 15 | *None* |
+| Cape | 40 | 48 | *None* |
+
+### Melwen Spells (Cannot get Suffixes, Accessory Slot)
+| Name | Token Cost | Sprite Number | Base Stats |
+| :--- | :--- | :--- | :--- |
+| Orb of Healing | 10 | 42 | Healing Spell (Value 100), Mana Points +10 |
+| Talisman of Healing | 10 | 46 | Healing Spell (Value 100), Spell Power +20 |
 | Orb of Meteor Shower | 30 | 42 | Meteor Shower Spell (Value 20), Mana Points +10 |
 | Talisman of Meteor Shower | 30 | 46 | Meteor Shower Spell (Value 20), Spell Power +20 |
-| Cape | 40 | 48 | *None* |
 | Orb of Armageddon | 40 | 42 | Armageddon Spell (Value 80), Mana Points +10 |
 | Talisman of Armageddon | 40 | 46 | Armageddon Spell (Value 80), Spell Power +20 |
