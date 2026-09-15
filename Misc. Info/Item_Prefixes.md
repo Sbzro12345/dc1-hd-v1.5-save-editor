@@ -1,64 +1,97 @@
 # Defender Chronicles HD v1.5 - Random Enhancements (Prefixes)
 
-In the game code, **Prefixes** are generated less frequently (rarer) than Suffixes. They also house all the negative stat modifiers and cost-only modifiers.
+In the game code, **Prefixes** (`param_4 = true`) have no hardcoded numerical limit per item, but cannot roll duplicates. 
+
+*Move Speed is not affected by Reputation Tier or Grade multipliers.
 
 ## Cost Modifiers
-These prefixes only modify the Token Price of items and grant no actual stat effects.
+These prefixes modify the Token Price of items and grant no actual stat effects.
 
-| Target | Modifiers |
-| :--- | :--- |
-| **General** | Cheap, Expensive |
-| **Melwen** | Unfashionable, Designer |
+| Target | Prefix | Eligible Slots | Effect |
+| :--- | :--- | :--- | :--- |
+| **General** | Cheap, Expensive | All Slots | Price Only |
+| **Melwen** | Unfashionable, Designer | All Slots | Price Only |
 
 ## Global & Commander Enhancements
-These prefixes apply globally or directly to Commander stats.
+These prefixes apply globally or directly to Commander stats across all heroes.
 
-| Effect (Hex ID) | Target | Enhancements & Value |
-| :--- | :--- | :--- |
-| Extra Gate Defense (`01 00 00 00`) | `FF FF FF FF` | Defender (+1), Clumsy (-1) |
-| Infantry Cmdr (`EF 03 00 00`) | `FE FF FF FF` | Glorious (+1), Paladin (+2), Loser (-1) |
-| Bowmen Cmdr (`F0 03 00 00`) | `FE FF FF FF` | Noble (+1), Sharpshooter (+2), Commoner (-1) |
-| Mage Cmdr (`F2 03 00 00`) | `FE FF FF FF` | Mystic (+1), Archmage (+2), Muggle (-1) |
+| Prefix Name | Effect (Hex ID) | Target | Value | Eligible Slots |
+| :--- | :--- | :--- | :--- | :--- |
+| Defender | Extra Gate Defense (`01 00 00 00`) | `FF FF FF FF` | +1 | All Slots |
+| Clumsy | Extra Gate Defense (`01 00 00 00`) | `FF FF FF FF` | -1 | Weapon, Chestpiece |
+| Glorious | Infantry Commander (`EF 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Loser | Infantry Commander (`EF 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Noble | Bowmen Commander (`F0 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Commoner | Bowmen Commander (`F0 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Mystic | Mage Commander (`F2 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Muggle | Mage Commander (`F2 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
 
-## General-Exclusive Prefixes
-These prefixes target the General specifically (`FE FF FF FF`), skipping Melwen.
+## Universal Prefixes
+In the engine code, these specific prefixes do not call `limitUsageTo` and act as unrestricted, universal enhancements.
 
-| Effect (Hex ID) | Enhancements & Value |
-| :--- | :--- |
-| Combat (`EB 03 00 00`) | Might (+1), Titan (+2), Feeble (-1) |
-| Morale (`EC 03 00 00`) | Brave (+1), Courage (+2), Coward (-1) |
-| Cunning (`EE 03 00 00`) | Witty (+1), Devious (+2), Dull (-1) |
-| Multi-Skill | Knight's (+1 Combat), Lord's (+1 Combat+Morale), King's (+1 Combat+Morale+Cunning) |
-| Attack Rtg (`DD 07 00 00`) | Savage (+10), Puny (-10) |
-| Health Rtg (`DF 07 00 00`) | Life (+25), Death (-25) |
-| Armor Rtg (`E0 07 00 00`) | Blessed (+5), Cursed (-5) |
-| Move Speed (`E3 07 00 00`) | Bulky (-1) |
-| Special Effects | Brutal (Rage `CD 0B`), Greedy (Greed `CE 0B`), Acidic (Poison `CF 0B`), Lizard's (Poison Immunity `D0 0B`) |
+| Prefix Name | Effect (Hex ID) | Target | Value | Eligible Slots |
+| :--- | :--- | :--- | :--- | :--- |
+| Life | Health Rating (`DF 07 00 00`) | `FE FF FF FF` | +25 | All Slots |
+| Death | Health Rating (`DF 07 00 00`) | `FE FF FF FF` | -25 | Weapon, Chestpiece |
+| Blessed | Armor Rating (`E0 07 00 00`) | `FE FF FF FF` | +5 | All Slots |
+| Cursed | Armor Rating (`E0 07 00 00`) | `FE FF FF FF` | -5 | Weapon, Chestpiece |
+| Bulky | Move Speed* (`E3 07 00 00`) | `FE FF FF FF` | -1 | Headpiece, Weapon, Chestpiece |
 
-## Melwen-Exclusive Prefixes
-These prefixes target Melwen specifically (`FE FF FF FF`), skipping the General.
+## General Limited Prefixes
+Rolling any of these prefixes forces the item's usage restriction to **General Only** (`limitUsageTo(this, 1)`).
 
-| Effect (Hex ID) | Enhancements & Value |
-| :--- | :--- |
-| Sorcery (`F3 03 00 00`) | Enchanted (+1), Genie (+2), Wooden (-1) |
-| Wisdom (`F4 03 00 00`) | Clever (+1), Foolish (-1) |
-| Power (`F5 03 00 00`) | Supreme (+1), Pathetic (-1) |
-| Multi-Skill | Apprentice's (+1 Sorcery), Master's (+1 Sorcery+Wisdom), Grandmaster's (+1 Sorcery+Wisdom+Power) |
-| Attack Rtg (`DD 07 00 00`) | Imbued (+15), Brittle (-15) |
-| Atk Radius (`DE 07 00 00`) | Keen (+2), Hazy (-2) |
-| Resist Rtg (`E8 07 00 00`) | Warding (+5), Dire (-5) |
-| Spell Power (`E5 07 00 00`) | Radiant (+10), Murky (-10) |
-| Mana Points (`E6 07 00 00`) | Chatty (+5), Perplexing (-5) |
-| Mana Recovery Rate (`E7 07 00 00`) | Charging (+5) |
+| Prefix Name | Effect (Hex ID) | Target | Value | Eligible Slots |
+| :--- | :--- | :--- | :--- | :--- |
+| Might | Combat (`EB 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Feeble | Combat (`EB 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Brave | Morale (`EC 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Coward | Morale (`EC 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Witty | Cunning (`EE 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Dull | Cunning (`EE 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Knight's | Multi-Skill | `FE FF FF FF` | +1 Combat | Weapon Only |
+| Lord's | Multi-Skill | `FE FF FF FF` | +1 Combat, +1 Morale | Weapon Only |
+| King's | Multi-Skill | `FE FF FF FF` | +1 Combat, +1 Morale, +1 Cunning | Weapon Only |
+| Savage | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | +10 | All Slots |
+| Puny | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | -10 | Weapon, Chestpiece |
+| Brutal | Rage (`CD 0B 00 00`) | `FE FF FF FF` | Rage | Headpiece, Weapon |
+| Greedy | Greed (`CE 0B 00 00`) | `FE FF FF FF` | +1 | Headpiece, Accessory |
+| Acidic | Poison (`CF 0B 00 00`) | `FE FF FF FF` | Poison Attack | Weapon, Accessory |
+| Lizard's | Poison Immunity (`D0 0B 00 00`) | `FE FF FF FF` | Poison Immunity | Chestpiece, Accessory |
+
+## Melwen Limited Prefixes
+Rolling any of these prefixes forces the item's usage restriction to **Melwen Only** (`limitUsageTo(this, 4)`).
+
+| Prefix Name | Effect (Hex ID) | Target | Value | Eligible Slots |
+| :--- | :--- | :--- | :--- | :--- |
+| Enchanted | Sorcery (`F3 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Wooden | Sorcery (`F3 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Clever | Wisdom (`F4 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Foolish | Wisdom (`F4 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Supreme | Power (`F5 03 00 00`) | `FE FF FF FF` | +1 | All Slots |
+| Pathetic | Power (`F5 03 00 00`) | `FE FF FF FF` | -1 | Weapon, Chestpiece |
+| Apprentice's | Multi-Skill | `FE FF FF FF` | +1 Sorcery | Weapon Only |
+| Master's | Multi-Skill | `FE FF FF FF` | +1 Sorcery, +1 Wisdom | Weapon Only |
+| Grandmaster's | Multi-Skill | `FE FF FF FF` | +1 Sorcery, +1 Wisdom, +1 Power | Weapon Only |
+| Imbued | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | +15 | All Slots |
+| Brittle | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | -15 | Weapon, Chestpiece |
+| Keen | Atk Radius (`DE 07 00 00`) | `FE FF FF FF` | +2 | All Slots |
+| Hazy | Atk Radius (`DE 07 00 00`) | `FE FF FF FF` | -2 | Weapon, Chestpiece |
+| Warding | Resist Rating (`E8 07 00 00`) | `FE FF FF FF` | +5 | All Slots |
+| Dire | Resist Rating (`E8 07 00 00`) | `FE FF FF FF` | -5 | Weapon, Chestpiece |
+| Radiant | Spell Power (`E5 07 00 00`) | `FE FF FF FF` | +10 | All Slots |
+| Murky | Spell Power (`E5 07 00 00`) | `FE FF FF FF` | -10 | Weapon, Chestpiece |
+| Chatty | Mana Points (`E6 07 00 00`) | `FE FF FF FF` | +5 | All Slots |
+| Perplexing | Mana Points (`E6 07 00 00`) | `FE FF FF FF` | -5 | Weapon, Chestpiece |
+| Charging | Mana Recovery (`E7 07 00 00`) | `FE FF FF FF` | +5 | Accessory Only |
 
 ## Unit-Specific Prefixes
-These prefixes apply their respective stat boosts directly to specific unit targets rather than the Hero.
+These prefixes apply direct stat boosts to specific unit classes. In the engine, all unit-specific prefixes are restricted exclusively to Accessories and require high-tier generation (`param_1 > 0`).
 
-| Target Class (Hex ID) | Stat Modifiers | Enhancements |
-| :--- | :--- | :--- |
-| **Warrior/Paladin** (`04 00 00 00`) | Atk Rtg (+3) | Valor |
-| **Berserker** (`05 00 00 00`) | Atk Rtg (+5) | Merciless |
-| **Archer/Marksman** (`0B 00 00 00`) | Atk Rtg (+1) | Precision |
-| **Ranger** (`0C 00 00 00`) | Atk Rtg (+1) | Exacto |
-| **Mage/Archmage** (`0F 00 00 00`) | Atk Rtg (+5) | Brilliance |
-| **Halfling/Lizardman** (`17 00 00 00`)| Atk Rtg (+2) | Vigilant |
+| Prefix Name | Effect (Hex ID) | Target | Value | Eligible Slots |
+| :--- | :--- | :--- | :--- | :--- |
+| Valor | Attack Rating (`DD 07 00 00`) | Warrior/Paladin (`04 00 00 00`) | +3 | Accessory Only |
+| Merciless | Attack Rating (`DD 07 00 00`) | Berserker (`05 00 00 00`) | +5 | Accessory Only |
+| Precision | Attack Rating (`DD 07 00 00`) | Archer/Marksman (`0B 00 00 00`) | +1 | Accessory Only |
+| Exacto | Attack Rating (`DD 07 00 00`) | Ranger (`0C 00 00 00`) | +1 | Accessory Only |
+| Brilliance | Attack Rating (`DD 07 00 00`) | Mage/Archmage (`0F 00 00 00`) | +5 | Accessory Only |
+| Vigilant | Attack Rating (`DD 07 00 00`) | Halfling/Lizardman (`17 00 00 00`) | +2 | Accessory Only |
