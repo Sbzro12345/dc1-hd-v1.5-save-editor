@@ -53,10 +53,10 @@ Rolling any of these prefixes forces the item's usage restriction to **General O
 | King's | Multi-Skill | `FE FF FF FF` | +1 Combat, +1 Morale, +1 Cunning | Weapon Only |
 | Savage | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | +10 | All Slots |
 | Puny | Attack Rating (`DD 07 00 00`) | `FE FF FF FF` | -10 | Weapon, Chestpiece |
-| Brutal | Rage (`CD 0B 00 00`) | `FE FF FF FF` | Rage | Headpiece, Weapon |
-| Greedy | Greed (`CE 0B 00 00`) | `FE FF FF FF` | +1 | Headpiece, Accessory |
-| Acidic | Poison (`CF 0B 00 00`) | `FE FF FF FF` | Poison Attack | Weapon, Accessory |
-| Lizard's | Poison Immunity (`D0 0B 00 00`) | `FE FF FF FF` | Poison Immunity | Chestpiece, Accessory |
+| Brutal | Rage (`CD 0B 00 00`) | `FE FF FF FF` | 0 | Headpiece, Weapon |
+| Greedy | Greed (`CE 0B 00 00`) | `FE FF FF FF` | 0 | Headpiece, Accessory |
+| Acidic | Poison (`CF 0B 00 00`) | `FE FF FF FF` | 0 | Weapon, Accessory |
+| Lizard's | Poison Immunity (`D0 0B 00 00`) | `FE FF FF FF` | 0 | Chestpiece, Accessory |
 
 ## Melwen Limited Prefixes
 Rolling any of these prefixes forces the item's usage restriction to **Melwen Only** (`limitUsageTo(this, 4)`).

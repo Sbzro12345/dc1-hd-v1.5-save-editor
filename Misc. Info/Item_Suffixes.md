@@ -47,10 +47,10 @@ Tier 3 suffixes are restricted exclusively to Accessories and require high-tier 
 | the Hydra | Health Rating (`DF 07 00 00`) | `FE FF FF FF` | +75 | Accessory Only |
 | the Sentinel | Armor Rating (`E0 07 00 00`) | `FE FF FF FF` | +10 | All Slots |
 | the Basilisk | Armor Rating (`E0 07 00 00`) | `FE FF FF FF` | +15 | Accessory Only |
-| Rage | Rage (`CD 0B 00 00`) | `FE FF FF FF` | Grants Rage | Headpiece, Weapon |
-| Avarice | Greed (`CE 0B 00 00`) | `FE FF FF FF` | Grants Greed | Headpiece, Accessory |
-| Venom | Poison Attack (`CF 0B 00 00`) | `FE FF FF FF` | Poison Attack | Weapon, Accessory |
-| Antidote | Poison Immunity (`D0 0B 00 00`) | `FE FF FF FF` | Poison Immunity | Chestpiece, Accessory |
+| Rage | Rage (`CD 0B 00 00`) | `FE FF FF FF` | 0 | Headpiece, Weapon |
+| Avarice | Greed (`CE 0B 00 00`) | `FE FF FF FF` | 0 | Headpiece, Accessory |
+| Venom | Poison Attack (`CF 0B 00 00`) | `FE FF FF FF` | 0 | Weapon, Accessory |
+| Antidote | Poison Immunity (`D0 0B 00 00`) | `FE FF FF FF` | 0 | Chestpiece, Accessory |
 
 ## Universal Suffixes
 In the engine code, these specific suffixes do not call `limitUsageTo` and act as unrestricted, universal enhancements.
@@ -113,18 +113,18 @@ These suffixes apply direct stat boosts and specials to specific unit classes. A
 | the Wolf | Health Rating (`DF 07 00 00`) | Warrior/Paladin (`04 00 00 00`) | +40 | All Slots |
 | Ironskin | Armor Rating (`E0 07 00 00`) | Warrior/Paladin (`04 00 00 00`) | +5 | All Slots |
 | the Wanderer | Movement Speed* (`E3 07 00 00`) | Warrior/Paladin (`04 00 00 00`) | +1 | All Slots |
-| Bloodlust | Rage (`CD 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | Grants Rage | All Slots |
-| the Snake | Poison Attack (`CF 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | Poison Attack | All Slots |
-| the Cure | Poison Immunity (`D0 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | Poison Immunity | All Slots |
+| Bloodlust | Rage (`CD 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | 0 | All Slots |
+| the Snake | Poison Attack (`CF 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | 0 | All Slots |
+| the Cure | Poison Immunity (`D0 0B 00 00`) | Warrior/Paladin (`04 00 00 00`) | 0 | All Slots |
 | the Slayer | Attack Rating (`DD 07 00 00`) | Berserker (`05 00 00 00`) | +20 | All Slots |
 | the Tiger | Health Rating (`DF 07 00 00`) | Berserker (`05 00 00 00`) | +80 | All Slots |
 | Steelskin | Armor Rating (`E0 07 00 00`) | Berserker (`05 00 00 00`) | +10 | All Slots |
 | the Wayfarer | Movement Speed* (`E3 07 00 00`) | Berserker (`05 00 00 00`) | +1 | All Slots |
-| the Viper | Poison Attack (`CF 0B 00 00`) | Berserker (`05 00 00 00`) | Poison Attack | All Slots |
-| the Remedy | Poison Immunity (`D0 0B 00 00`) | Berserker (`05 00 00 00`) | Poison Immunity | All Slots |
+| the Viper | Poison Attack (`CF 0B 00 00`) | Berserker (`05 00 00 00`) | 0 | All Slots |
+| the Remedy | Poison Immunity (`D0 0B 00 00`) | Berserker (`05 00 00 00`) | 0 | All Slots |
 | Excellent | Attack Rating (`DD 07 00 00`) | Archer/Marksman (`0B 00 00 00`) | +3 | All Slots |
 | Eagle Eyes | Atk Radius (`DE 07 00 00`) | Archer/Marksman (`0B 00 00 00`) | +5 | All Slots |
-| the Wicked | Poison Attack (`CF 0B 00 00`) | Archer/Marksman (`0B 00 00 00`) | Poison Attack | All Slots |
+| the Wicked | Poison Attack (`CF 0B 00 00`) | Archer/Marksman (`0B 00 00 00`) | 0 | All Slots |
 | Perfection | Attack Rating (`DD 07 00 00`) | Ranger (`0C 00 00 00`) | +5 | All Slots |
 | Hawk Eyes | Atk Radius (`DE 07 00 00`) | Ranger (`0C 00 00 00`) | +5 | All Slots |
 | the Arcane | Attack Rating (`DD 07 00 00`) | Mage/Archmage (`0F 00 00 00`) | +15 | All Slots |
@@ -134,5 +134,5 @@ These suffixes apply direct stat boosts and specials to specific unit classes. A
 | the Fox | Health Rating (`DF 07 00 00`) | Halfling/Lizardman (`17 00 00 00`) | +30 | All Slots |
 | Stoneskin | Armor Rating (`E0 07 00 00`) | Halfling/Lizardman (`17 00 00 00`) | +3 | All Slots |
 | the Nimble | Movement Speed* (`E3 07 00 00`) | Halfling/Lizardman (`17 00 00 00`) | +1 | All Slots |
-| Chaos | Rage (`CD 0B 00 00`) | Halfling/Lizardman (`17 00 00 00`) | Grants Rage | All Slots |
-| Poison Ward | Poison Immunity (`D0 0B 00 00`) | Halfling/Lizardman (`17 00 00 00`) | Poison Immunity | All Slots |
+| Chaos | Rage (`CD 0B 00 00`) | Halfling/Lizardman (`17 00 00 00`) | 0 | All Slots |
+| Poison Ward | Poison Immunity (`D0 0B 00 00`) | Halfling/Lizardman (`17 00 00 00`) | 0 | All Slots |
