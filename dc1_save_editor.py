@@ -980,17 +980,21 @@ def manual_editing_page(profile, baseline, bundle, page, item):
                 
             print("  %d. %-20s %s" % (n, name, shown))
         
-        print("  10. Delete Item")
-        print("  11. Back")
+        print("  10. Effect Entries")
+        print("  11. Delete Item")
+        print("  12. Back")
 
-        choice = menu_choice(11)
-        if choice is None or choice == 11:
+        choice = menu_choice(12)
+        if choice is None or choice == 12:
             return
         if choice == 1:
             edit_item_name(profile, baseline, bundle, page, item)
         elif choice == 2:
             choose_dword(profile, page, "Equipment Slot", item["start"] + 4, SLOT_OPTIONS)
         elif choice == 10:
+            effect_entries_page(profile, baseline,
+                                "%s > Manual Editing" % page, item)
+        elif choice == 11:
             delete_item(profile, baseline, bundle, item)
             #return
         else:
@@ -1077,6 +1081,131 @@ def equipment_page(profile, baseline, bundle):
 
 
 # ---------------------------------------------------------------- editing
+
+EFFECT_ENTRIES = 10
+EFFECT_BASE = 7          # tail DWORD index where the 10 effect entries begin
+EFFECT_PARTS = ("Effect ID", "Target", "Value")
+
+
+def hex_bytes(value):
+    """A signed DWORD as the little-endian byte string the docs use."""
+    return " ".join("%02X" % b for b in struct.pack("<i", value))
+
+
+def ask_hex_dword(text):
+    """Hex bytes in file order. DD 07 00 00, DD070000 and DD07 are the same
+    DWORD. A 0x prefix switches to plain number entry instead."""
+    while True:
+        answer = ask(text)
+        if answer is None:
+            return None
+        cleaned = "".join(answer.split())
+        try:
+            if cleaned[:2].lower() == "0x":
+                value = int(cleaned, 16)
+            else:
+                if not cleaned or len(cleaned) % 2 or len(cleaned) > 8:
+                    raise ValueError
+                raw = bytes.fromhex(cleaned)
+                value = int.from_bytes(raw.ljust(4, b"\x00"), "little")
+        except ValueError:
+            print("  Enter the bytes as they appear in the file, for example")
+            print("  DD 07 00 00, DD070000 or DD07. For a plain number use 0x7DD.")
+            continue
+        if value > DWORD_MAX:
+            value -= 0x100000000
+        if not DWORD_MIN <= value <= DWORD_MAX:
+            print("  That is outside the signed DWORD range.")
+            continue
+        return value
+
+
+def effect_index(entry, part):
+    return EFFECT_BASE + entry * 3 + part
+
+
+def effect_cell(value, part):
+    """Effect ID and Target render as hex bytes, Value as decimal."""
+    return "%d" % value if part == 2 else hex_bytes(value)
+
+
+def effect_values(buf, start, entry):
+    return [read_dword(buf, item_field_offset(buf, start, effect_index(entry, part)))
+            for part in range(3)]
+
+
+def effect_preview(profile, item, entry, part):
+    idx = effect_index(entry, part)
+    new = read_dword(profile, item_field_offset(profile, item["start"], idx))
+    old = read_dword(item["original"], item_field_offset(item["original"], 0, idx))
+    if old == new:
+        return effect_cell(new, part)
+    return "%s -> %s" % (effect_cell(old, part), effect_cell(new, part))
+
+
+def edit_hex_field(profile, baseline, page, label, offset):
+    header("%s > %s" % (page, label))
+    print(THIN)
+    current = read_dword(baseline, offset)
+    pending = read_dword(profile, offset)
+    print("  Current value: %s" % hex_bytes(current))
+    if pending != current:
+        print("  Pending value: %s" % hex_bytes(pending))
+
+    value = ask_hex_dword(
+        "\n  Enter the bytes (DD 07 00 00, DD070000 or DD07), or Q to cancel: ")
+    if value is not None:
+        write_dword(profile, offset, value)
+
+
+def effect_entry_page(profile, baseline, page, item, entry):
+    title = "%s > Entry %d" % (page, entry + 1)
+    while True:
+        header(title)
+        print(THIN)
+        for n, label in enumerate(EFFECT_PARTS, 1):
+            print("  %d. %-12s %s"
+                  % (n, label, effect_preview(profile, item, entry, n - 1)))
+        print("  4. Back")
+
+        choice = menu_choice(4)
+        if choice is None or choice == 4:
+            return
+        offset = item_field_offset(profile, item["start"],
+                                   effect_index(entry, choice - 1))
+        if choice == 3:
+            edit_field(profile, baseline, title, "Value", offset)
+        else:
+            edit_hex_field(profile, baseline, title, EFFECT_PARTS[choice - 1], offset)
+
+
+def effect_entries_page(profile, baseline, page, item):
+    title = "%s > Effect Entries" % page
+    while True:
+        header(title)
+        print(THIN)
+        print("   %-3s %-13s %-13s %12s"
+              % ("#", "Effect ID", "Target", "Value"))
+        for entry in range(EFFECT_ENTRIES):
+            # Unsaved entries print their original underneath rather than
+            # inline, so the columns stay aligned either way.
+            new = effect_values(profile, item["start"], entry)
+            old = effect_values(item["original"], 0, entry)
+            print()
+            print("   %2d. %-13s %-13s %12s"
+                  % (entry + 1, hex_bytes(new[0]), hex_bytes(new[1]), new[2]))
+            if old != new:
+                print("   was %-13s %-13s %12s"
+                      % (hex_bytes(old[0]), hex_bytes(old[1]), old[2]))
+                print()
+        print()
+        print("   %2d. Back" % (EFFECT_ENTRIES + 1))
+
+        choice = menu_choice(EFFECT_ENTRIES + 1)
+        if choice is None or choice == EFFECT_ENTRIES + 1:
+            return
+        effect_entry_page(profile, baseline, title, item, choice - 1)
+
 
 def edit_field(profile, baseline, page, label, offset, notes=()):
     """Draw the value entry screen and apply whatever the user enters."""
