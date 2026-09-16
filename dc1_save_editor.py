@@ -347,13 +347,14 @@ def count_pending(profile, baseline, offsets):
 def find_hero_blocks(profile, ident, skills):
     """Offsets of every hero record whose fields fit inside the payload."""
     span = len(ident) + max(after for _, after in skills) + 4
-    blocks, start = [], 0
+    blocks, start = 0, 0
+    found_blocks = []
     while True:
         found = profile.find(ident, start)
         if found == -1:
-            return blocks
+            return found_blocks
         if found + span <= len(profile):
-            blocks.append(found)
+            found_blocks.append(found)
         start = found + 1
 
 
@@ -1371,12 +1372,83 @@ def build_equipment(profile, heroes):
     return equip
 
 
-def refresh_equipment(profile, equipment):
+def build_stash(profile):
+    """Navigate past Melwen's map array and rigorously validate the 102 stash items."""
+    melwen_id = b"Melwen\x00"
+    start_idx = profile.find(melwen_id)
+    if start_idx == -1: return None
+
+    # Skip past Melwen's equipped items
+    curr_idx = start_idx + len(melwen_id) + 52
+    for _ in range(5):
+        curr_idx = profile.find(ITEM_SENTINEL, curr_idx)
+        if curr_idx == -1: return None
+        curr_idx += 8 
+        curr_idx = profile.find(b"\x00", curr_idx)
+        if curr_idx == -1: return None
+        curr_idx += 1 + ITEM_TAIL 
+        
+    anchor = profile.find(MAP_ANCHOR, curr_idx)
+    if anchor == -1: return None
+        
+    # Jump to the end of the map array
+    map_end = anchor + len(MAP_ANCHOR) + MAP_ARRAY_AFTER + 157 + len(MAP_NAMES) * MAP_ENTRY
+    
+    # Sliding window to strictly validate 102 back-to-back items
+    pos = map_end
+    while True:
+        first_item = profile.find(ITEM_SENTINEL, pos)
+        if first_item == -1: return None
+        
+        curr = first_item
+        valid = True
+        shared = []
+        stronghold = []
+        
+        for i in range(102):
+            # Check for Sentinel
+            if profile[curr:curr+4] != ITEM_SENTINEL:
+                valid = False
+                break
+            
+            # String terminator must exist after the 8-byte prefix (Sentinel + Slot)
+            nul = profile.find(b"\x00", curr + 8)
+            if nul == -1:
+                valid = False
+                break
+                
+            end = nul + 1 + ITEM_TAIL
+            if end > len(profile):
+                valid = False
+                break
+                
+            item = {"start": curr, "original": bytes(profile[curr:end])}
+            if i < 6:
+                shared.append(item)
+            else:
+                stronghold.append(item)
+                
+            curr = end
+            
+        if valid:
+            return {"shared": shared, "stronghold": stronghold}
+            
+        # If the chain broke, move forward 1 byte from the last attempted start and try again
+        pos = first_item + 1
+
+
+def refresh_equipment(profile, bundle):
     """Re-snapshot every record so a saved change stops counting as pending."""
-    if not equipment:
-        return
-    for slots in equipment.values():
-        for item in slots:
+    if bundle.get("equip"):
+        for slots in bundle["equip"].values():
+            for item in slots:
+                item["original"] = bytes(
+                    profile[item["start"]:item_end(profile, item["start"])])
+    if bundle.get("stash"):
+        for item in bundle["stash"]["shared"]:
+            item["original"] = bytes(
+                profile[item["start"]:item_end(profile, item["start"])])
+        for item in bundle["stash"]["stronghold"]:
             item["original"] = bytes(
                 profile[item["start"]:item_end(profile, item["start"])])
 
@@ -1395,10 +1467,15 @@ def shift_bundle(bundle, pos, delta):
         if bundle[key]:
             for entry in bundle[key]:
                 entry["fields"] = [(l, s(o), n) for l, o, n in entry["fields"]]
-    if bundle["equip"]:
+    if bundle.get("equip"):
         for slots in bundle["equip"].values():
             for item in slots:
                 item["start"] = s(item["start"])
+    if bundle.get("stash"):
+        for item in bundle["stash"]["shared"]:
+            item["start"] = s(item["start"])
+        for item in bundle["stash"]["stronghold"]:
+            item["start"] = s(item["start"])
 
 
 def splice(profile, baseline, bundle, a, b, new):
@@ -1572,9 +1649,8 @@ def manual_editing_page(profile, baseline, bundle, page, item):
                 edit_field(profile, baseline, page, name, offset, notes)
 
 
-def item_page(profile, baseline, bundle, hero, index, item):
-    label, slot_value = EQUIP_SLOTS[index]
-    page = "%s ITEMS > %s" % (hero.upper(), label)
+def item_page(profile, baseline, bundle, hero, item, slot_label, slot_value, page_prefix):
+    page = "%s > %s" % (page_prefix, slot_label)
 
     while True:
         header(page)
@@ -1621,25 +1697,110 @@ def items_page(profile, baseline, bundle, hero):
         choice = menu_choice(len(slots) + 1)
         if choice is None or choice == len(slots) + 1:
             return
-        item_page(profile, baseline, bundle, hero, choice - 1, slots[choice - 1])
+            
+        item = slots[choice - 1]
+        label, slot_value = EQUIP_SLOTS[choice - 1]
+        item_page(profile, baseline, bundle, hero, item, label, slot_value, "%s ITEMS" % hero.upper())
+
+
+def stash_items_page(profile, baseline, bundle, stash_key, title):
+    slot_map = {0: "Headpiece", 1: "Weapon", 2: "Chestpiece", 3: "Accessory", -1: "No Item"}
+    
+    while True:
+        header(title)
+        print(THIN)
+        slots = bundle["stash"][stash_key]
+        for n, item in enumerate(slots, 1):
+            raw_slot = item_slot(profile, item["start"])
+            slot_str = slot_map.get(raw_slot, str(raw_slot))
+            if raw_slot == UNEQUIPPED:
+                shown = "Empty"
+            else:
+                shown = item_name(profile, item["start"]) or "(empty)"
+            if item_changed(profile, item):
+                shown += "   (edited)"
+            
+            print("  %2d. [%-10s] %s" % (n, slot_str, shown))
+            
+        print("  %d. Back" % (len(slots) + 1))
+
+        choice = menu_choice(len(slots) + 1)
+        if choice is None or choice == len(slots) + 1:
+            return
+            
+        selected_item = slots[choice - 1]
+        
+        header("%s > Select Hero" % title)
+        print(THIN)
+        print("  Which hero is this item intended for?")
+        print("  1. General")
+        print("  2. Melwen")
+        print("  3. Back")
+        h_choice = menu_choice(3)
+        if h_choice is None or h_choice == 3:
+            continue
+        hero = "General" if h_choice == 1 else "Melwen"
+        
+        header("%s > Select Slot" % title)
+        print(THIN)
+        print("  Which slot type is this item for?")
+        print("  1. Headpiece")
+        print("  2. Weapon")
+        print("  3. Chestpiece")
+        print("  4. Accessory")
+        print("  5. Back")
+        s_choice = menu_choice(5)
+        if s_choice is None or s_choice == 5:
+            continue
+            
+        slot_value = s_choice - 1
+        slot_label = ["Headpiece", "Weapon", "Chestpiece", "Accessory"][slot_value]
+        
+        item_page(profile, baseline, bundle, hero, selected_item, slot_label, slot_value, title)
 
 
 def equipment_page(profile, baseline, bundle):
     while True:
         header("EQUIPMENT EDITOR")
         print(THIN)
-        for n, hero in enumerate(("General", "Melwen"), 1):
-            changed = sum(1 for item in bundle["equip"][hero]
-                          if item_changed(profile, item))
-            note = ("(%d edited)" % changed) if changed else ""
-            row = "  %d. %s Items" % (n, hero)
+        
+        def changed_count(items):
+            return sum(1 for i in items if item_changed(profile, i))
+            
+        gen_c = changed_count(bundle["equip"]["General"])
+        mel_c = changed_count(bundle["equip"]["Melwen"])
+        sha_c = changed_count(bundle["stash"]["shared"]) if bundle.get("stash") else 0
+        str_c = changed_count(bundle["stash"]["stronghold"]) if bundle.get("stash") else 0
+        
+        def p_row(n, label, c):
+            note = ("(%d edited)" % c) if c else ""
+            row = "  %d. %s" % (n, label)
             print(row.ljust(28) + note if note else row)
-        print("  3. Back")
-
-        choice = menu_choice(3)
-        if choice is None or choice == 3:
+            
+        p_row(1, "Equipped General Items", gen_c)
+        p_row(2, "Equipped Melwen Items", mel_c)
+        
+        opts = 3
+        if bundle.get("stash"):
+            p_row(3, "Shared Inventory", sha_c)
+            p_row(4, "Stronghold", str_c)
+            print("  5. Back")
+            opts = 5
+        else:
+            print("  3. Back")
+            
+        choice = menu_choice(opts)
+        if choice is None or choice == opts:
             return
-        items_page(profile, baseline, bundle, "General" if choice == 1 else "Melwen")
+            
+        if choice == 1:
+            items_page(profile, baseline, bundle, "General")
+        elif choice == 2:
+            items_page(profile, baseline, bundle, "Melwen")
+        elif choice == 3 and bundle.get("stash"):
+            stash_items_page(profile, baseline, bundle, "shared", "SHARED INVENTORY")
+        elif choice == 4 and bundle.get("stash"):
+            stash_items_page(profile, baseline, bundle, "stronghold", "STRONGHOLD")
 
 
 # ---------------------------------------------------------------- editing
@@ -1805,23 +1966,60 @@ def field_page(profile, baseline, title, fields, intro=None):
         edit_field(profile, baseline, title, label, offset, notes)
 
 
+def bulk_maps_page(profile, baseline, maps, title):
+    """Handles updating a specific field across all 9 maps simultaneously."""
+    while True:
+        header(title)
+        print(THIN)
+        print("  1. Number of Stars")
+        print("  2. Mythic+ R number")
+        print("  3. Back")
+        
+        choice = menu_choice(3)
+        if choice is None or choice == 3:
+            return
+        
+        field_idx = choice - 1
+        label = "Number of Stars" if choice == 1 else "Mythic+ R number"
+        notes = maps[0]["fields"][field_idx][2] # Use the standard notes from the first map
+        
+        header("%s > %s" % (title, label))
+        print(THIN)
+        for note in notes:
+            print(note)
+            print()
+        
+        val = ask_dword(
+            "  Enter the new value to apply to all maps (%d to %d), or Q to cancel: "
+            % (DWORD_MIN, DWORD_MAX))
+        if val is not None:
+            for m in maps:
+                write_dword(profile, m["fields"][field_idx][1], val)
+
+
 def maps_page(profile, baseline, maps, title="GENERAL MAPS"):
     while True:
         header(title)
         print(THIN)
-        for n, entry in enumerate(maps, 1):
+        # Shift maps index by 1 to make room for Bulk Edit at the top
+        print("  %2d. %-12s (Apply to all)" % (1, "Bulk Edit"))
+        for n, entry in enumerate(maps, 2):
             stars = preview(profile, baseline, entry["fields"][0][1])
             rank = preview(profile, baseline, entry["fields"][1][1])
             print("  %2d. %-12s Stars %-14s R %s"
                   % (n, entry["name"], stars, rank))
-        print("  %2d. Back" % (len(maps) + 1))
+        print("  %2d. Back" % (len(maps) + 2))
 
-        choice = menu_choice(len(maps) + 1)
-        if choice is None or choice == len(maps) + 1:
+        choice = menu_choice(len(maps) + 2)
+        if choice is None or choice == len(maps) + 2:
             return
-        entry = maps[choice - 1]
-        field_page(profile, baseline, "%s > %s" % (title, entry["name"]),
-                   entry["fields"])
+            
+        if choice == 1:
+            bulk_maps_page(profile, baseline, maps, "%s > Bulk Edit" % title)
+        else:
+            entry = maps[choice - 2]
+            field_page(profile, baseline, "%s > %s" % (title, entry["name"]),
+                       entry["fields"])
 
 
 def main_menu(profile, baseline, bundle, state, commit):
@@ -1870,6 +2068,9 @@ def main_menu(profile, baseline, bundle, state, commit):
         if equipment:
             changed = sum(1 for slots in equipment.values()
                           for item in slots if item_changed(profile, item))
+            if bundle.get("stash"):
+                changed += sum(1 for item in bundle["stash"]["shared"] if item_changed(profile, item))
+                changed += sum(1 for item in bundle["stash"]["stronghold"] if item_changed(profile, item))
             note = ("(%d edited)" % changed) if changed else ""
             print(row.ljust(28) + note if note else row)
         else:
@@ -1906,7 +2107,7 @@ def main_menu(profile, baseline, bundle, state, commit):
             status = commit(profile)
             if status is None:
                 baseline[:] = profile
-                refresh_equipment(profile, equipment)
+                refresh_equipment(profile, bundle)
                 status = ""
 
         else:
@@ -1917,6 +2118,9 @@ def main_menu(profile, baseline, bundle, state, commit):
             if equipment:
                 changed += sum(1 for slots in equipment.values()
                                for item in slots if item_changed(profile, item))
+            if bundle.get("stash"):
+                changed += sum(1 for item in bundle["stash"]["shared"] if item_changed(profile, item))
+                changed += sum(1 for item in bundle["stash"]["stronghold"] if item_changed(profile, item))
             if changed:
                 header("EXIT")
                 print(THIN)
@@ -1985,6 +2189,7 @@ def main():
     melwen_maps = build_melwen_maps(profile)
 
     equipment = build_equipment(profile, heroes)
+    stash = build_stash(profile)
 
     baseline = bytearray(profile)
     bundle = {
@@ -1992,6 +2197,7 @@ def main():
         "gmaps": general_maps,
         "mmaps": melwen_maps,
         "equip": equipment,
+        "stash": stash,
         "token": heroes["General"]["base"] - TOKEN_BACK,
     }
     state = {"path": path}
