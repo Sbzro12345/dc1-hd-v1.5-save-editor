@@ -611,6 +611,10 @@ PRESETS = (
      "effects": ((0x03EB, -2, 0x10), (0x03EC, -2, -6), (0x03EE, -2, 0x10),
                  (0x07DD, -2, 0x42), (0x07E0, -2, 0x42), (0x0BCD, -2, 0),
                  (0x0BCE, -2, 0), (0x0BCF, -2, 0))},
+    {"name": "Coronet of the Supreme Magi", "slot": 0, "sprite": 0x34, "token": 0x02A8,
+     "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x04,
+     "effects": ((0x03EF, -2, 0x0A), (0x03F0, -2, 0x0A), (0x03F2, -2, 0x0A),
+                 (0x03F4, -2, 0x0A), (0x03F5, -2, 0x0A), (0x07E5, -2, 0x0118))},
     
     {"name": "Argonath's Blade", "slot": 1, "sprite": 0x3F, "token": -2,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x01,
@@ -687,15 +691,19 @@ PRESETS = (
     
     {"name": "Imperial Seal", "slot": 3, "sprite": 0x57, "token": -2,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "note": "(IAP Accessory)",
      "effects": ((0x0DC3, -1, 0),)},
     {"name": "Archangel Statue", "slot": 3, "sprite": 0x59, "token": -2,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "note": "(IAP Accessory)",
      "effects": ((0x0DC4, -1, 0),)},
     {"name": "Golden Goose", "slot": 3, "sprite": 0x5A, "token": -2,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "note": "(IAP Accessory)",
      "effects": ((0x0DC5, -2, 0),)},
     {"name": "Book of War", "slot": 3, "sprite": 0x58, "token": -2,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
+     "note": "(IAP Accessory)",
      "effects": ((0x0DC6, -2, 0),)},
     {"name": "Cloak of Invisibility", "slot": 2, "sprite": 0x13, "token": 0x05,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
@@ -712,7 +720,558 @@ PRESETS = (
     {"name": "Juleck's Amulet", "slot": 3, "sprite": 0x16, "token": 0x16,
      "prefix": 0, "suffix": 0, "rep": 1, "grade": 0, "hero": 0x0F,
      "effects": ((0x07DF, -2, 0x0258),)},
+    {"name": "Toerag's Spellbook", "slot": 3, "sprite": 0x58, "token": -1,
+     "prefix": 2, "suffix": 1, "rep": 1, "grade": 5, "hero": 0x04,
+     "note": "(0 Cost Armageddon)",
+     "effects": ((0x0BDA, -1, 0x2E9), (0x0D00, -1, -160),
+                 (0x07DD, 0x05, 0x2D), (0x07E5, -2, 0xB8))},
+    {"name": "Fun", "slot": 3, "sprite": 0x2A, "token": 0x0F74,
+     "prefix": 1, "suffix": 1, "rep": 1, "grade": 5, "hero": 0x04,
+     "note": "(0 Cost Meteor Shower)",
+     "effects": ((0x0BDD, -1, 0xBE), (0x0D02, -1, -100),
+                 (0x07DD, 0x05, 0x2D), (0x07E5, -2, 0xB8))},
+    {"name": "IDDQD", "slot": 3, "sprite": 0x2E, "token": 0x0300,
+     "prefix": 0, "suffix": 1, "rep": 1, "grade": 5, "hero": 0x04,
+     "note": "(0 Cost Healing)",
+     "effects": ((0x0BD8, -1, 0x3C3), (0x07E5, -2, 0xB8),
+                 (0x0D01, -1, -40), (0x07DD, 0x05, 0x2D))},
 )
+
+# ---------------------------------------------------------------- generation data
+E_GATE = 0x01; E_GOLD = 0x02; E_CMBT = 0x03EB
+E_MORALE = 0x03EC; E_CUNN = 0x03EE; E_INFC = 0x03EF
+E_BOWC = 0x03F0; E_MAGC = 0x03F2; E_SORC = 0x03F3
+E_WISD = 0x03F4; E_POWR = 0x03F5; E_ATK = 0x07DD
+E_RAD = 0x07DE; E_HLTH = 0x07DF; E_ARMOR = 0x07E0
+E_MOVE = 0x07E3; E_SPLP = 0x07E5; E_MANA = 0x07E6
+E_MANAREC = 0x07E7; E_RES = 0x07E8; E_RAGE = 0x0BCD
+E_GREED = 0x0BCE; E_POIS = 0x0BCF; E_POISIM = 0x0BD0
+E_ICE = 0x0BD7; E_LTNG = 0x0BD6; E_HEAL = 0x0BD8
+E_ARMA = 0x0BDA; E_METR = 0x0BDD
+
+T_HERO = -2; T_ALL = -1
+U_WAR = 0x04; U_BER = 0x05; U_ARC = 0x0B
+U_RAN = 0x0C; U_MAG = 0x0F; U_HAL = 0x17
+
+BASE_ITEMS = {
+    "General": {
+        0: [
+            ("Cap", 2, 2, [(E_ARMOR, T_HERO, 1)]),
+            ("Studded Cap", 3, 2, [(E_ARMOR, T_HERO, 2)]),
+            ("Leather Cap", 4, 30, [(E_ARMOR, T_HERO, 3)]),
+            ("Bronze Cap", 5, 30, [(E_ARMOR, T_HERO, 4)]),
+            ("Captain's Cap", 8, 30, [(E_ARMOR, T_HERO, 4), (E_MORALE, T_HERO, 1)]),
+            ("Bronze Helm", 10, 2, [(E_ARMOR, T_HERO, 5)]),
+            ("Iron Helm", 10, 0, [(E_ARMOR, T_HERO, 8)]),
+            ("Steel Helm", 15, 0, [(E_ARMOR, T_HERO, 12)]),
+            ("Silver Helm", 20, 0, [(E_ARMOR, T_HERO, 16)]),
+            ("Imperial Helm", 30, 1, [(E_ARMOR, T_HERO, 20)]),
+            ("Military Helm", 40, 34, [(E_ARMOR, T_HERO, 15), (E_INFC, T_HERO, 1), (E_BOWC, T_HERO, 1), (E_MAGC, T_HERO, 1)]),
+            ("Crown", 40, 3, [(E_INFC, T_HERO, 5), (E_BOWC, T_HERO, 5), (E_MAGC, T_HERO, 5)]),
+            ("Full Helm", 50, 31, [(E_ARMOR, T_HERO, 25)]),
+            ("Horned Helm", 60, 33, [(E_ARMOR, T_HERO, 20), (E_ATK, T_HERO, 12)]),
+            ("Rider's Helm", 64, 34, [(E_ARMOR, T_HERO, 24), (E_BOWC, T_HERO, 4), (E_MAGC, T_HERO, 4)]),
+            ("Adamantium Helm", 80, 32, [(E_ARMOR, T_HERO, 30)]),
+            ("Grand Helm", 120, 32, [(E_ARMOR, T_HERO, 30), (E_CMBT, T_HERO, 5), (E_MORALE, T_HERO, 5), (E_INFC, T_HERO, 5), (E_BOWC, T_HERO, 5)]),
+        ],
+        1: [
+            ("Dagger", 1, 6, [(E_ATK, T_HERO, 3)]),
+            ("Elven Dagger", 2, 6, [(E_ATK, T_HERO, 7), (E_CMBT, T_HERO, 1)]),
+            ("Iron Shortsword", 2, 6, [(E_ATK, T_HERO, 5)]),
+            ("Steel Shortsword", 3, 6, [(E_ATK, T_HERO, 7)]),
+            ("Silver Shortsword", 4, 6, [(E_ATK, T_HERO, 10)]),
+            ("Iron Sabre", 8, 40, [(E_ATK, T_HERO, 10)]),
+            ("Iron Mace", 12, 4, [(E_ATK, T_HERO, 35)]),
+            ("Steel Sabre", 13, 40, [(E_ATK, T_HERO, 12)]),
+            ("Iron Axe", 16, 5, [(E_ATK, T_HERO, 60), (E_MOVE, T_HERO, -1)]),
+            ("Silver Sabre", 17, 40, [(E_ATK, T_HERO, 15)]),
+            ("Steel Mace", 18, 4, [(E_ATK, T_HERO, 45)]),
+            ("Barbarian Mace", 24, 4, [(E_ATK, T_HERO, 50), (E_INFC, T_HERO, 1), (E_BOWC, T_HERO, 1)]),
+            ("Silver Mace", 24, 4, [(E_ATK, T_HERO, 55)]),
+            ("Iron Longsword", 24, 39, [(E_ATK, T_HERO, 45)]),
+            ("Steel Axe", 24, 5, [(E_ATK, T_HERO, 70), (E_MOVE, T_HERO, -1)]),
+            ("War Axe", 30, 5, [(E_ATK, T_HERO, 70), (E_MOVE, T_HERO, -1), (E_MORALE, T_HERO, 2), (E_CUNN, T_HERO, 2)]),
+            ("Iron Greatsword", 32, 37, [(E_ATK, T_HERO, 70), (E_MOVE, T_HERO, -1)]),
+            ("Silver Axe", 32, 5, [(E_ATK, T_HERO, 80), (E_MOVE, T_HERO, -1)]),
+            ("Steel Longsword", 45, 39, [(E_ATK, T_HERO, 60)]),
+            ("Elven Sword", 60, 39, [(E_ATK, T_HERO, 65), (E_CMBT, T_HERO, 2)]),
+            ("Steel Greatsword", 60, 37, [(E_ATK, T_HERO, 85), (E_MOVE, T_HERO, -1)]),
+            ("Silver Longsword", 72, 39, [(E_ATK, T_HERO, 75)]),
+            ("Slayer Sword", 75, 37, [(E_ATK, T_HERO, 90), (E_MOVE, T_HERO, -1), (E_CMBT, T_HERO, 2), (E_CUNN, T_HERO, 2)]),
+            ("Silver Greatsword", 96, 37, [(E_ATK, T_HERO, 100), (E_MOVE, T_HERO, -1)]),
+            ("Adamantium Greatsword", 160, 38, [(E_ATK, T_HERO, 130), (E_MOVE, T_HERO, -2)]),
+        ],
+        2: [
+            ("Leatherskin", 5, 12, [(E_ARMOR, T_HERO, 7)]),
+            ("Bronze Breastplate", 10, 9, [(E_ARMOR, T_HERO, 10)]),
+            ("Iron Breastplate", 20, 11, [(E_ARMOR, T_HERO, 15)]),
+            ("Bronze Platemail", 25, 36, [(E_ARMOR, T_HERO, 15)]),
+            ("Steel Breastplate", 30, 11, [(E_ARMOR, T_HERO, 20)]),
+            ("Silver Breastplate", 40, 11, [(E_ARMOR, T_HERO, 25)]),
+            ("Orc Breastplate", 45, 10, [(E_ARMOR, T_HERO, 20), (E_CMBT, T_HERO, 2), (E_INFC, T_HERO, 2)]),
+            ("Iron Platemail", 50, 35, [(E_ARMOR, T_HERO, 25)]),
+            ("Imperial Breastplate", 60, 7, [(E_ARMOR, T_HERO, 30)]),
+            ("Steel Platemail", 70, 35, [(E_ARMOR, T_HERO, 35)]),
+            ("Adamantium Breastplate", 80, 8, [(E_ARMOR, T_HERO, 40)]),
+            ("Silver Platemail", 90, 35, [(E_ARMOR, T_HERO, 45)]),
+        ],
+        3: [
+            ("Iron Ring", 1, 14, []), ("Steel Ring", 3, 14, []), ("Amulet", 4, 17, []),
+            ("Silver Ring", 8, 14, []), ("Necklace", 10, 16, []), ("Charm", 15, 43, []),
+            ("Imperial Ring", 18, 13, []), ("Jewel Ring", 20, 41, []), ("Leather Bracer", 21, 45, []),
+            ("Iron Greaves", 22, 58, []), ("Bracelet", 24, 47, []), ("Iron Bracer", 25, 44, []),
+            ("Steel Greaves", 26, 58, []), ("Steel Bracer", 29, 44, []), ("Adamantium Ring", 30, 15, []),
+            ("Silver Greaves", 30, 58, []), ("Silver Bracer", 33, 44, []), ("Cape", 40, 48, []),
+        ]
+    },
+    "Melwen": {
+        0: [
+            ("Cap", 2, 2, [(E_ARMOR, T_HERO, 1)]),
+            ("Studded Cap", 3, 2, [(E_ARMOR, T_HERO, 2)]),
+            ("Leather Cap", 4, 30, [(E_ARMOR, T_HERO, 3)]),
+            ("Bronze Cap", 5, 30, [(E_ARMOR, T_HERO, 4)]),
+            ("Tiara", 10, 49, [(E_SPLP, T_HERO, 30)]),
+            ("Major Tiara", 18, 49, [(E_SPLP, T_HERO, 48)]),
+            ("Coronet", 25, 52, [(E_SPLP, T_HERO, 60)]),
+            ("Relic Tiara", 28, 49, [(E_SPLP, T_HERO, 64)]),
+            ("Major Coronet", 40, 52, [(E_SPLP, T_HERO, 75)]),
+            ("Crown", 40, 3, [(E_INFC, T_HERO, 5), (E_BOWC, T_HERO, 5), (E_MAGC, T_HERO, 5)]),
+            ("Relic Coronet", 55, 52, [(E_SPLP, T_HERO, 90)]),
+            ("Tiara of Enlightenment", 78, 49, [(E_SPLP, T_HERO, 36), (E_SORC, T_HERO, 5), (E_WISD, T_HERO, 5), (E_POWR, T_HERO, 5)]),
+        ],
+        1: [
+            ("Ice Wand", 18, 54, [(E_ICE, T_ALL, -1), (E_ATK, T_HERO, 30)]),
+            ("Lightning Wand", 24, 55, [(E_LTNG, T_ALL, -1), (E_ATK, T_HERO, 55)]),
+            ("Major Ice Wand", 42, 54, [(E_ICE, T_ALL, -1), (E_ATK, T_HERO, 50)]),
+            ("Ancient Lightning Wand", 46, 55, [(E_LTNG, T_ALL, -1), (E_ATK, T_HERO, 68), (E_WISD, T_HERO, 1), (E_POWR, T_HERO, 1)]),
+            ("Major Lightning Wand", 54, 55, [(E_LTNG, T_ALL, -1), (E_ATK, T_HERO, 80)]),
+            ("Runic Ice Wand", 74, 54, [(E_ICE, T_ALL, -1), (E_ATK, T_HERO, 60), (E_POWR, T_HERO, 4)]),
+            ("Relic Ice Wand", 92, 54, [(E_ICE, T_ALL, -1), (E_ATK, T_HERO, 70)]),
+            ("Relic Lightning Wand", 122, 55, [(E_LTNG, T_ALL, -1), (E_ATK, T_HERO, 105)]),
+        ],
+        2: [
+            ("Leather Mantle", 4, 61, [(E_MANA, T_HERO, 6)]),
+            ("Dragon Hide Mantle", 4, 61, [(E_MANA, T_HERO, 6), (E_ATK, T_HERO, 20)]),
+            ("Leatherskin", 5, 12, [(E_ARMOR, T_HERO, 7)]),
+            ("Cotton Mantle", 8, 61, [(E_MANA, T_HERO, 10)]),
+            ("Leather Cloak", 10, 60, [(E_MANA, T_HERO, 12)]),
+            ("Silk Mantle", 12, 61, [(E_MANA, T_HERO, 14)]),
+            ("Cotton Cloak", 25, 60, [(E_MANA, T_HERO, 18)]),
+            ("Leather Robe", 30, 59, [(E_MANA, T_HERO, 20)]),
+            ("Silk Cloak", 40, 60, [(E_MANA, T_HERO, 25)]),
+            ("Cotton Robe", 50, 59, [(E_MANA, T_HERO, 30)]),
+            ("Vampire's Cowl", 60, 60, [(E_MANA, T_HERO, 25), (E_SPLP, T_HERO, 20), (E_SORC, T_HERO, 1), (E_POWR, T_HERO, 1)]),
+            ("Silk Robe", 75, 59, [(E_MANA, T_HERO, 40)]),
+            ("Sorceress Robe", 80, 59, [(E_MANA, T_HERO, 30), (E_SORC, T_HERO, 2), (E_MAGC, T_HERO, 2)]),
+        ],
+        3: [
+            ("Iron Ring", 1, 14, []), ("Steel Ring", 3, 14, []), ("Amulet", 4, 17, []),
+            ("Silver Ring", 8, 14, []), ("Necklace", 10, 16, []), ("Charm", 15, 43, []),
+            ("Imperial Ring", 18, 13, []), ("Jewel Ring", 20, 41, []), ("Leather Bracer", 21, 45, []),
+            ("Bracelet", 24, 47, []), ("Adamantium Ring", 30, 15, []), ("Cape", 40, 48, []),
+            ("Orb of Healing", 10, 42, [(E_HEAL, T_ALL, 100), (E_MANA, T_HERO, 10)]),
+            ("Talisman of Healing", 10, 46, [(E_HEAL, T_ALL, 100), (E_SPLP, T_HERO, 20)]),
+            ("Orb of Meteor Shower", 30, 42, [(E_METR, T_ALL, 20), (E_MANA, T_HERO, 10)]),
+            ("Talisman of Meteor Shower", 30, 46, [(E_METR, T_ALL, 20), (E_SPLP, T_HERO, 20)]),
+            ("Orb of Armageddon", 40, 42, [(E_ARMA, T_ALL, 80), (E_MANA, T_HERO, 10)]),
+            ("Talisman of Armageddon", 40, 46, [(E_ARMA, T_ALL, 80), (E_SPLP, T_HERO, 20)]),
+        ]
+    }
+}
+
+GEN_SUFFIXES = [
+    ("Protection", [(E_GATE, T_ALL, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Guardian", [(E_GATE, T_ALL, 2)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Archangel", [(E_GATE, T_ALL, 3)], [3], ["General", "Melwen"]),
+    ("the Leprechaun", [(E_GOLD, T_ALL, 2)], [3], ["General", "Melwen"]),
+    ("the Gladiator", [(E_INFC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Paladin", [(E_INFC, T_HERO, 2)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Cyclops", [(E_INFC, T_HERO, 3)], [3], ["General", "Melwen"]),
+    ("the Marksman", [(E_BOWC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Sharpshooter", [(E_BOWC, T_HERO, 2)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Roc", [(E_BOWC, T_HERO, 3)], [3], ["General", "Melwen"]),
+    ("the Sage", [(E_MAGC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Archmage", [(E_MAGC, T_HERO, 2)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Pegasus", [(E_MAGC, T_HERO, 3)], [3], ["General", "Melwen"]),
+    
+    ("the Conqueror", [(E_CMBT, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Titan", [(E_CMBT, T_HERO, 2)], [0, 1, 2, 3], ["General"]),
+    ("the Dragon", [(E_CMBT, T_HERO, 3)], [3], ["General"]),
+    ("the Hero", [(E_MORALE, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Courage", [(E_MORALE, T_HERO, 2)], [0, 1, 2, 3], ["General"]),
+    ("the Griffon", [(E_MORALE, T_HERO, 3)], [3], ["General"]),
+    ("the Diplomat", [(E_CUNN, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Devious", [(E_CUNN, T_HERO, 2)], [0, 1, 2, 3], ["General"]),
+    ("the Harpy", [(E_CUNN, T_HERO, 3)], [3], ["General"]),
+    ("the Bear", [(E_ATK, T_HERO, 10)], [0, 1, 2, 3], ["General"]),
+    ("the Centaur", [(E_ATK, T_HERO, 20)], [0, 1, 2, 3], ["General"]),
+    ("the Minotaur", [(E_ATK, T_HERO, 30)], [3], ["General"]),
+    ("the Collossus", [(E_HLTH, T_HERO, 50)], [0, 1, 2, 3], ["General"]),
+    ("the Hydra", [(E_HLTH, T_HERO, 75)], [3], ["General"]),
+    ("the Sentinel", [(E_ARMOR, T_HERO, 10)], [0, 1, 2, 3], ["General"]),
+    ("the Basilisk", [(E_ARMOR, T_HERO, 15)], [3], ["General"]),
+    ("Rage", [(E_RAGE, T_HERO, 0)], [0, 1], ["General"]),
+    ("Avarice", [(E_GREED, T_HERO, 0)], [0, 3], ["General"]),
+    ("Venom", [(E_POIS, T_HERO, 0)], [1, 3], ["General"]),
+    ("Antidote", [(E_POISIM, T_HERO, 0)], [2, 3], ["General"]),
+    
+    ("the Mammoth", [(E_HLTH, T_HERO, 25)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Fortitude", [(E_ARMOR, T_HERO, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Wind", [(E_MOVE, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    
+    ("the Witch", [(E_SORC, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("Genie", [(E_SORC, T_HERO, 2)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Phoenix", [(E_SORC, T_HERO, 3)], [3], ["Melwen"]),
+    ("the Scholar", [(E_WISD, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("Great Owl", [(E_WISD, T_HERO, 2)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Wizard", [(E_WISD, T_HERO, 3)], [3], ["Melwen"]),
+    ("the Alchemist", [(E_POWR, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Elders", [(E_POWR, T_HERO, 2)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Warlock", [(E_POWR, T_HERO, 3)], [3], ["Melwen"]),
+    ("Element", [(E_ATK, T_HERO, 15)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Medusa", [(E_ATK, T_HERO, 30)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Gorgon", [(E_ATK, T_HERO, 45)], [3], ["Melwen"]),
+    ("Far Sight", [(E_RAD, T_HERO, 2)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Seer", [(E_RAD, T_HERO, 5)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Oracle", [(E_RAD, T_HERO, 10)], [3], ["Melwen"]),
+    ("Barrier", [(E_RES, T_HERO, 5)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Force", [(E_RES, T_HERO, 10)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Serpent", [(E_ARMOR, T_HERO, 15)], [3], ["Melwen"]),
+    ("Energy", [(E_SPLP, T_HERO, 10)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Manticore", [(E_SPLP, T_HERO, 20)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Wyvern", [(E_SPLP, T_HERO, 30)], [3], ["Melwen"]),
+    ("Knowledge", [(E_MANA, T_HERO, 5)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Imp", [(E_MANA, T_HERO, 10)], [0, 1, 2, 3], ["Melwen"]),
+    ("the Unicorn", [(E_MANA, T_HERO, 15)], [3], ["Melwen"]),
+    ("Willpower", [(E_MANAREC, T_HERO, 5)], [0, 1, 2], ["Melwen"]),
+    ("Healing Spell", [(E_HEAL, T_ALL, 100)], [3], ["Melwen"]),
+    ("Armageddon Spell", [(E_ARMA, T_ALL, 80)], [3], ["Melwen"]),
+    ("Meteor Shower Spell", [(E_METR, T_ALL, 20)], [3], ["Melwen"]),
+    
+    ("the Champion", [(E_ATK, U_WAR, 10)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Wolf", [(E_HLTH, U_WAR, 40)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Ironskin", [(E_ARMOR, U_WAR, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Wanderer", [(E_MOVE, U_WAR, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Bloodlust", [(E_RAGE, U_WAR, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Snake", [(E_POIS, U_WAR, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Cure", [(E_POISIM, U_WAR, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Slayer", [(E_ATK, U_BER, 20)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Tiger", [(E_HLTH, U_BER, 80)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Steelskin", [(E_ARMOR, U_BER, 10)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Wayfarer", [(E_MOVE, U_BER, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Viper", [(E_POIS, U_BER, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Remedy", [(E_POISIM, U_BER, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Excellent", [(E_ATK, U_ARC, 3)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Eagle Eyes", [(E_RAD, U_ARC, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Wicked", [(E_POIS, U_ARC, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Perfection", [(E_ATK, U_RAN, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Hawk Eyes", [(E_RAD, U_RAN, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Arcane", [(E_ATK, U_MAG, 15)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Vision", [(E_RAD, U_MAG, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Troll", [(E_HLTH, U_MAG, 20)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Wonder", [(E_ATK, U_HAL, 8)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Fox", [(E_HLTH, U_HAL, 30)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Stoneskin", [(E_ARMOR, U_HAL, 3)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("the Nimble", [(E_MOVE, U_HAL, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Chaos", [(E_RAGE, U_HAL, 0)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Poison Ward", [(E_POISIM, U_HAL, 0)], [0, 1, 2, 3], ["General", "Melwen"])
+]
+
+GEN_PREFIXES = [
+    ("Defender", [(E_GATE, T_ALL, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Glorious", [(E_INFC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Noble", [(E_BOWC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Mystic", [(E_MAGC, T_HERO, 1)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Life", [(E_HLTH, T_HERO, 25)], [0, 1, 2, 3], ["General", "Melwen"]),
+    ("Blessed", [(E_ARMOR, T_HERO, 5)], [0, 1, 2, 3], ["General", "Melwen"]),
+    
+    ("Might", [(E_CMBT, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Brave", [(E_MORALE, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Witty", [(E_CUNN, T_HERO, 1)], [0, 1, 2, 3], ["General"]),
+    ("Knight's", [(E_CMBT, T_HERO, 1)], [1], ["General"]),
+    ("Lord's", [(E_CMBT, T_HERO, 1), (E_MORALE, T_HERO, 1)], [1], ["General"]),
+    ("King's", [(E_CMBT, T_HERO, 1), (E_MORALE, T_HERO, 1), (E_CUNN, T_HERO, 1)], [1], ["General"]),
+    ("Savage", [(E_ATK, T_HERO, 10)], [0, 1, 2, 3], ["General"]),
+    ("Brutal", [(E_RAGE, T_HERO, 0)], [0, 1], ["General"]),
+    ("Greedy", [(E_GREED, T_HERO, 0)], [0, 3], ["General"]),
+    ("Acidic", [(E_POIS, T_HERO, 0)], [1, 3], ["General"]),
+    ("Lizard's", [(E_POISIM, T_HERO, 0)], [2, 3], ["General"]),
+    
+    ("Enchanted", [(E_SORC, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("Clever", [(E_WISD, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("Supreme", [(E_POWR, T_HERO, 1)], [0, 1, 2, 3], ["Melwen"]),
+    ("Apprentice's", [(E_SORC, T_HERO, 1)], [1], ["Melwen"]),
+    ("Master's", [(E_SORC, T_HERO, 1), (E_WISD, T_HERO, 1)], [1], ["Melwen"]),
+    ("Grandmaster's", [(E_SORC, T_HERO, 1), (E_WISD, T_HERO, 1), (E_POWR, T_HERO, 1)], [1], ["Melwen"]),
+    ("Imbued", [(E_ATK, T_HERO, 15)], [0, 1, 2, 3], ["Melwen"]),
+    ("Keen", [(E_RAD, T_HERO, 2)], [0, 1, 2, 3], ["Melwen"]),
+    ("Warding", [(E_RES, T_HERO, 5)], [0, 1, 2, 3], ["Melwen"]),
+    ("Radiant", [(E_SPLP, T_HERO, 10)], [0, 1, 2, 3], ["Melwen"]),
+    ("Chatty", [(E_MANA, T_HERO, 5)], [0, 1, 2, 3], ["Melwen"]),
+    ("Charging", [(E_MANAREC, T_HERO, 5)], [3], ["Melwen"]),
+    
+    ("Valor", [(E_ATK, U_WAR, 3)], [3], ["General", "Melwen"]),
+    ("Merciless", [(E_ATK, U_BER, 5)], [3], ["General", "Melwen"]),
+    ("Precision", [(E_ATK, U_ARC, 1)], [3], ["General", "Melwen"]),
+    ("Exacto", [(E_ATK, U_RAN, 1)], [3], ["General", "Melwen"]),
+    ("Brilliance", [(E_ATK, U_MAG, 5)], [3], ["General", "Melwen"]),
+    ("Vigilant", [(E_ATK, U_HAL, 2)], [3], ["General", "Melwen"])
+]
+
+# ---------------------------------------------------------------- string translation dictionaries
+EFF_STR = {
+    E_GATE: "Gate Defense", E_GOLD: "Initial Gold", E_CMBT: "Combat",
+    E_MORALE: "Morale", E_CUNN: "Cunning", E_INFC: "Infantry Cmdr",
+    E_BOWC: "Bowmen Cmdr", E_MAGC: "Mage Cmdr", E_SORC: "Sorcery",
+    E_WISD: "Wisdom", E_POWR: "Power", E_ATK: "Attack Rating",
+    E_RAD: "Atk Radius", E_HLTH: "Health Rating", E_ARMOR: "Armor Rating",
+    E_MOVE: "Move Speed", E_SPLP: "Spell Power", E_MANA: "Mana Points",
+    E_MANAREC: "Mana Recovery", E_RES: "Resist Rating", E_RAGE: "Rage",
+    E_GREED: "Greed", E_POIS: "Poison Attack", E_POISIM: "Poison Immunity",
+    E_ICE: "Ice Wand Spell", E_LTNG: "Lightning Wand Spell", E_HEAL: "Healing Spell",
+    E_ARMA: "Armageddon Spell", E_METR: "Meteor Shower Spell"
+}
+
+TGT_STR = {
+    T_HERO: "Hero", T_ALL: "Global",
+    U_WAR: "Warrior/Paladin", U_BER: "Berserker",
+    U_ARC: "Archer/Marksman", U_RAN: "Ranger",
+    U_MAG: "Mage/Archmage", U_HAL: "Halfling/Lizardman"
+}
+
+def format_eff_list(eff_list):
+    """Converts a list of effect tuples into human-readable stat strings."""
+    strs = []
+    for eff, tgt, val in eff_list:
+        t_str = TGT_STR.get(tgt, "Unknown Target")
+        e_str = EFF_STR.get(eff, "Unknown Effect")
+        if val == 0 or val == -1:
+            strs.append("%s %s" % (t_str, e_str))
+        else:
+            sign = "+" if val > 0 else ""
+            strs.append("%s %s %s%d" % (t_str, e_str, sign, val))
+    return ", ".join(strs)
+
+def get_max_filtered_enhancements(source_list, hero, slot):
+    valid = [e for e in source_list if hero in e[3] and slot in e[2]]
+    max_vals = {}
+    for entry in valid:
+        for eff, tgt, val in entry[1]:
+            max_vals[(eff, tgt)] = max(max_vals.get((eff, tgt), -999999), val)
+            
+    filtered = []
+    for entry in valid:
+        if all(val >= max_vals[(eff, tgt)] for eff, tgt, val in entry[1]):
+            filtered.append(entry)
+    return filtered
+
+def generate_item_page(profile, baseline, bundle, page, item, hero, expected_slot):
+    rep_mults = {0: "(x0.5)", 1: "(x1)", 2: "(x2)", 3: "(x3)", 4: "(x4)", 5: "(x5)", 6: "(x6)"}
+    grade_mults = {0: "(x1.0)", 1: "(x0.8)", 2: "(x1.1)", 3: "(x1.2)", 4: "(x1.3)", 5: "(x1.5)"}
+    slot_map = {0: "Headpiece", 1: "Weapon", 2: "Chestpiece", 3: "Accessory"}
+    
+    step = 1
+    chosen_base = None
+    chosen_suffix = None
+    chosen_prefixes = []
+    chosen_grade_name, chosen_grade_val = "None", 0
+    chosen_rep_name, chosen_rep_val = "None", 1
+
+    while True:
+        if step == 1:
+            header("%s > Base Item" % page)
+            print(THIN)
+            base_options = BASE_ITEMS[hero].get(expected_slot, [])
+            if not base_options:
+                pause("  No Base Items available.")
+                return False
+                
+            for n, (b_name, b_token, b_sprite, b_effects) in enumerate(base_options, 1):
+                print("  %d. %-24s (%s)" % (n, b_name, format_eff_list(b_effects)))
+            print("  %d. Back" % (len(base_options) + 1))
+            
+            choice = menu_choice(len(base_options) + 1)
+            if choice is None or choice == len(base_options) + 1:
+                return False
+            chosen_base = base_options[choice - 1]
+            step = 2
+
+        elif step == 2:
+            # Melwen Spell Accessories and Tiara of Enlightenment cannot receive additional suffixes
+            if chosen_base[0] in ("Orb of Healing", "Talisman of Healing", 
+                                  "Orb of Meteor Shower", "Talisman of Meteor Shower", 
+                                  "Orb of Armageddon", "Talisman of Armageddon",
+                                  "Tiara of Enlightenment"):
+                chosen_suffix = None
+                step = 3
+                continue
+
+            header("%s > Suffix" % page)
+            print(THIN)
+            valid_suffixes = get_max_filtered_enhancements(GEN_SUFFIXES, hero, expected_slot)
+            print("  1. None")
+            for n, s_entry in enumerate(valid_suffixes, 2):
+                print("  %d. %-20s (%s)" % (n, s_entry[0], format_eff_list(s_entry[1])))
+            print("  %d. Back" % (len(valid_suffixes) + 2))
+            
+            s_choice = menu_choice(len(valid_suffixes) + 2)
+            if s_choice is None or s_choice == len(valid_suffixes) + 2:
+                step = 1
+                continue
+            chosen_suffix = None if s_choice == 1 else valid_suffixes[s_choice - 2]
+            step = 3
+
+        elif step == 3:
+            header("%s > Prefixes" % page)
+            print(THIN)
+            valid_prefixes = get_max_filtered_enhancements(GEN_PREFIXES, hero, expected_slot)
+            for n, p_entry in enumerate(valid_prefixes, 1):
+                print("  Key %-2d: %-18s (%s)" % (n, p_entry[0], format_eff_list(p_entry[1])))
+            
+            print("\n  Note: Enter prefix key(s) separated by space (e.g. '1 3')")
+            print("  Or just press Enter to proceed without Prefixes.")
+            
+            while True:
+                p_raw = ask("  Keys (or Enter for none, Q to back): ")
+                if p_raw is None: 
+                    if chosen_base[0] in ("Orb of Healing", "Talisman of Healing", 
+                                          "Orb of Meteor Shower", "Talisman of Meteor Shower", 
+                                          "Orb of Armageddon", "Talisman of Armageddon"):
+                        step = 1
+                    else:
+                        step = 2
+                    break
+                if p_raw == "": 
+                    chosen_prefixes = []
+                    step = 4
+                    break
+                
+                parts = p_raw.split()
+                try:
+                    indices = [int(p) for p in parts]
+                    if not all(1 <= idx <= len(valid_prefixes) for idx in indices):
+                        print("  Invalid keys. Make sure the numbers match the list.")
+                        continue
+                    if len(indices) > 2:
+                        print("  Error: A maximum of 2 prefixes is allowed.")
+                        continue
+                    if len(set(indices)) != len(indices):
+                        print("  Error: Duplicate prefixes are not allowed.")
+                        continue
+                        
+                    chosen_prefixes = [valid_prefixes[idx - 1] for idx in indices]
+                    step = 4
+                    break
+                except ValueError:
+                    print("  Invalid format. Enter numbers separated by spaces.")
+
+        elif step == 4:
+            header("%s > Reputation Tier" % page)
+            print(THIN)
+            for n, (r_name, r_val) in enumerate(REPUTATION_OPTIONS, 1):
+                print("  %d. %s %s" % (n, r_name, rep_mults.get(r_val, "")))
+            print("  %d. Back" % (len(REPUTATION_OPTIONS) + 1))
+            
+            r_choice = menu_choice(len(REPUTATION_OPTIONS) + 1)
+            if r_choice is None or r_choice == len(REPUTATION_OPTIONS) + 1:
+                step = 3
+                continue
+            chosen_rep_name, chosen_rep_val = REPUTATION_OPTIONS[r_choice - 1]
+            step = 5
+
+        elif step == 5:
+            header("%s > Grade" % page)
+            print(THIN)
+            for n, (g_name, g_val) in enumerate(GRADE_OPTIONS, 1):
+                print("  %d. %s %s" % (n, g_name, grade_mults.get(g_val, "")))
+            print("  %d. Back" % (len(GRADE_OPTIONS) + 1))
+            
+            g_choice = menu_choice(len(GRADE_OPTIONS) + 1)
+            if g_choice is None or g_choice == len(GRADE_OPTIONS) + 1:
+                step = 4
+                continue
+            chosen_grade_name, chosen_grade_val = GRADE_OPTIONS[g_choice - 1]
+            step = 6
+            
+        elif step == 6:
+            # 6. Computation and Summary Preview
+            grade_mult = {0: 1.0, 1: 0.8, 2: 1.1, 3: 1.2, 4: 1.3, 5: 1.5}.get(chosen_grade_val, 1.0)
+            rep_mult = {0: 0.5, 1: 1.0, 2: 2.0, 3: 3.0, 4: 4.0, 5: 5.0, 6: 6.0}.get(chosen_rep_val, 1.0)
+            
+            # Combine all effects additively
+            all_effs = list(chosen_base[3])
+            if chosen_suffix: all_effs.extend(chosen_suffix[1])
+            for p in chosen_prefixes: all_effs.extend(p[1])
+            
+            merged_effs = {}
+            for eff, tgt, val in all_effs:
+                merged_effs[(eff, tgt)] = merged_effs.get((eff, tgt), 0) + val
+                
+            # Apply multipliers
+            final_eff_tuples = []
+            
+            # Effects that should ignore Reputation and Grade multipliers
+            EXCLUDED_MULT_EFFS = {
+                E_MOVE, E_ICE, E_LTNG,
+                E_RAGE, E_GREED, E_POIS, E_POISIM
+            }
+            
+            for (eff, tgt), val in merged_effs.items():
+                if eff not in EXCLUDED_MULT_EFFS:
+                    val = int(val * grade_mult)
+                    val = int(val * rep_mult)
+                final_eff_tuples.append((eff, tgt, val))
+                
+            # String Compilation
+            final_name = chosen_base[0]
+            if chosen_prefixes:
+                final_name = " ".join([p[0] for p in chosen_prefixes]) + " " + final_name
+            if chosen_rep_val not in (0, 1):
+                final_name = chosen_rep_name + " " + final_name
+            if chosen_grade_val != 0:
+                final_name = chosen_grade_name + " " + final_name
+            if chosen_suffix:
+                final_name = final_name + " Of " + chosen_suffix[0]
+                
+            final_token = int(int(chosen_base[1] * grade_mult) * rep_mult)
+            hero_mask = 0b0001 if hero == "General" else 0b0100
+            
+            # Draw Summary
+            header("%s > Summary" % page)
+            print(THIN)
+            print("  1. %-20s %s" % ("Name", final_name))
+            print("  2. %-20s %s" % ("Equipment Slot", slot_map.get(expected_slot, "Unknown")))
+            print("  3. %-20s %d" % ("Sprite Number", chosen_base[2]))
+            print("  4. %-20s %d" % ("Token Value", final_token))
+            print("  5. %-20s %d" % ("Prefix Count", len(chosen_prefixes)))
+            print("  6. %-20s %d" % ("Suffix Count", 1 if chosen_suffix else 0))
+            print("  7. %-20s %s" % ("Reputation Tier", chosen_rep_name))
+            print("  8. %-20s %s" % ("Grade", chosen_grade_name))
+            print("  9. %-20s %s" % ("Which Hero", "Melwen Only" if hero == "Melwen" else "General Only"))
+            
+            for i, (eff, tgt, val) in enumerate(final_eff_tuples):
+                print(" %2d. %-20s %s" % (10 + i, "Effect %d" % (i + 1), format_eff_list([(eff, tgt, val)])))
+                
+            print("\n  Proceed with Item Generation?")
+            print("  1. Yes")
+            print("  2. No (Go Back)")
+            
+            ans = menu_choice(2)
+            if ans == 2 or ans is None:
+                step = 5
+                continue
+            
+            # Inject
+            preset = {
+                "name": final_name, "slot": expected_slot, "sprite": chosen_base[2],
+                "token": final_token, "prefix": len(chosen_prefixes),
+                "suffix": 1 if chosen_suffix else 0, "rep": chosen_rep_val,
+                "grade": chosen_grade_val, "hero": hero_mask,
+                "effects": final_eff_tuples[:10]
+            }
+            record = preset_record(preset)
+            splice(profile, baseline, bundle, item["start"], item_end(profile, item["start"]), record)
+            return True
 
 
 RENAME_NOTE = "(Renamed to remove hardcoded Reputation requirement)"
@@ -1021,24 +1580,27 @@ def item_page(profile, baseline, bundle, hero, index, item):
         header(page)
         print(THIN)
         print("  1. Preset Items")
-        print("  2. Manual Editing")
-        print("  3. Delete Item")
-        print("  4. Back")
+        print("  2. Generate Item")
+        print("  3. Manual Editing")
+        print("  4. Delete Item")
+        print("  5. Back")
 
-        choice = menu_choice(4)
-        if choice is None or choice == 4:
+        choice = menu_choice(5)
+        if choice is None or choice == 5:
             return
         
         if choice == 1:
-            # Check for the True flag from preset_page
             if preset_page(profile, baseline, bundle, page, item, hero, slot_value):
                 return
         elif choice == 2:
+            if generate_item_page(profile, baseline, bundle, page, item, hero, slot_value):
+                return
+        elif choice == 3:
             manual_editing_page(profile, baseline, bundle, page, item)
             return
-        elif choice == 3:
+        elif choice == 4:
             delete_item(profile, baseline, bundle, item)
-            return # <-- Added so simple deletion bounces back a menu
+            return
 
 
 def items_page(profile, baseline, bundle, hero):
