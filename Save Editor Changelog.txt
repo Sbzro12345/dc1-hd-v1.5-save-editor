@@ -1,0 +1,33 @@
+v1.0
+- Token Hack
+- General and Melwen Level Hack
+- General and Melwen Skill Level Hack
+
+
+v1.1
+- fixed bug where Melwen first 3 skills couldnt be changed due to a wrong assumption in the Data Structure documentation
+- added feature to modify General Maps stars and R number
+
+
+v1.1.1
+- add Melwen Map editor
+
+
+v1.2
+- Equipment Editing with Presets, Manual and Delete Item
+  - currently on for Equipped General and Melwen Items
+  - Manual Editing does not allow editing of Effect Entries
+
+
+v1.2.1
+- added Effect Entries editing for Manual Editing
+
+
+v1.2.2
+- added Item Generator (similar behavior to store-bought item random-generation)
+- Known Bugs: I don't know the exact formula for how item rarity affects Token Value, but I do not consider this to be important, since all I care about is being able to generate items with the exact Suffix and Prefixes I need
+
+
+v1.2.3
+- added Bulk Edit feature for Maps Editors
+- Stronghold and Shared Inventory Editor
