@@ -102,6 +102,8 @@ Items generate as blank slates with these exact base properties before any prefi
 ## Melwen Hero Items
 
 ### Melwen Headgear
+**Tiara of Enlightenment cannot get a Suffix.
+
 | Name | Token Cost | Sprite Number | Base Stats |
 | :--- | :--- | :--- | :--- |
 | Cap | 2 | 2 | Armor +1 |
@@ -115,7 +117,7 @@ Items generate as blank slates with these exact base properties before any prefi
 | Major Coronet | 40 | 52 | Spell Power +75 |
 | Crown | 40 | 3 | +5 Infantry Cmdr, +5 Bowmen Cmdr, +5 Mage Cmdr |
 | Relic Coronet | 55 | 52 | Spell Power +90 |
-| Tiara of Enlightenment | 78 | 49 | Spell Power +36, +5 Sorcery, +5 Wisdom, +5 Power |
+| Tiara of Enlightenment** | 78 | 49 | Spell Power +36, +5 Sorcery, +5 Wisdom, +5 Power |
 
 ### Melwen Weapons
 | Name | Token Cost | Sprite Number | Base Stats |
