@@ -11,7 +11,7 @@ Just Python3
 - Level Hack for General and Melwen
 - Skill Level Hack for General and Melwen
 - Maps Hack for General and Melwen
-- Equipment Editor. Allows you to obtain IAP items using the Preset edit function. Also allows you to Generate items like as if buying from the stores.
+- Equipment Editor. Allows you to obtain IAP items using the Preset Item function, or immediately get all IAP Items in bulk in pages 12-16 of the Stronghold with the IAP Hack function. Also allows you to Generate items like as if buying from the stores.
 
 ## Instructions
 - Double-click the `dc1_save_editor.py` or run it from the command line. It is recommended to keep the plist you want to edit in the same dir as the save editor, so that it can auto-detect the plist. Otherwise, you will be prompted to provide a filepath to the plist you would like to edit.
