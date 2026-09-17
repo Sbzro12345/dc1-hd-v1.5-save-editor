@@ -1735,10 +1735,15 @@ def stash_items_page(profile, baseline, bundle, stash_key, title):
         print("  Which hero is this item intended for?")
         print("  1. General")
         print("  2. Melwen")
-        print("  3. Back")
-        h_choice = menu_choice(3)
-        if h_choice is None or h_choice == 3:
+        print("  3. Manual Editing")
+        print("  4. Back")
+        h_choice = menu_choice(4)
+        if h_choice is None or h_choice == 4:
             continue
+        if h_choice == 3:
+            manual_editing_page(profile, baseline, bundle, title, selected_item)
+            continue
+            
         hero = "General" if h_choice == 1 else "Melwen"
         
         header("%s > Select Slot" % title)
@@ -1748,15 +1753,65 @@ def stash_items_page(profile, baseline, bundle, stash_key, title):
         print("  2. Weapon")
         print("  3. Chestpiece")
         print("  4. Accessory")
-        print("  5. Back")
-        s_choice = menu_choice(5)
-        if s_choice is None or s_choice == 5:
+        print("  5. Manual Editing")
+        print("  6. Back")
+        s_choice = menu_choice(6)
+        if s_choice is None or s_choice == 6:
+            continue
+        if s_choice == 5:
+            manual_editing_page(profile, baseline, bundle, title, selected_item)
             continue
             
         slot_value = s_choice - 1
         slot_label = ["Headpiece", "Weapon", "Chestpiece", "Accessory"][slot_value]
         
         item_page(profile, baseline, bundle, hero, selected_item, slot_label, slot_value, title)
+
+
+def iap_hack_page(profile, baseline, bundle):
+    """Bulk applies IAP sets to the end of the Stronghold."""
+    header("IAP HACK")
+    print(THIN)
+    print("  This will overwrite slots 69-96 (Pages 12-16) of your Stronghold with")
+    print("  all IAP Accessories, Headgear, Weapons, and Chestpieces.")
+    print("  preceded by the items grouped by hero sets.")
+    print("  WARNING: Any items currently in those slots will be lost.")
+    print()
+    print("  1. Proceed")
+    print("  2. Back")
+
+    if menu_choice(2) != 1:
+        return
+
+    # Ordered to place accessories, then hero sets
+    iap_names = [
+        # Accessories
+        "Imperial Seal", "Archangel Statue", "Golden Goose", "Book of War",
+        # General IAP Sets
+        "Argonath's Full Helm", "Argonath's Blade", "Argonath's Breastplate",
+        "Branston's Full Helm", "Branston's Greatsword", "Branston's Breastplate",
+        "Leandro's Spike Helm", "Leandro's Long Dagger", "Leandro's Platemail",
+        "Hiram's Cap", "Hiram's Scimitar", "Hiram's Platemail",
+        # Melwen IAP Sets
+        "Myrtharnith's Mask", "Myrtharnith's Lightning Wand", "Myrtharnith's Sun Robe",
+        "Orleaear's Circlet", "Orleaear's Ice Wand", "Orleaear's Moon Robe",
+        "Tyrghymn's Headband", "Tyrghymn's Ice Wand", "Tyrghymn's Witch Robe",
+        "Killevalsa's Barrette", "Killevalsa's Lightning Wand", "Killevalsa's Sorcerer Robe",
+    ]
+
+    stronghold = bundle["stash"]["stronghold"]
+    start_idx = len(stronghold) - len(iap_names)
+
+    if start_idx < 0:
+        pause("  Error: Stronghold does not have enough slots.")
+        return
+
+    for i, name in enumerate(iap_names):
+        target_item = stronghold[start_idx + i]
+        preset = next(p for p in PRESETS if p["name"] == name)
+        record = preset_record(preset)
+        # splice updates the bundle offsets automatically, keeping further loop iterations aligned
+        splice(profile, baseline, bundle, target_item["start"], item_end(profile, target_item["start"]), record)
 
 
 def equipment_page(profile, baseline, bundle):
@@ -1784,8 +1839,9 @@ def equipment_page(profile, baseline, bundle):
         if bundle.get("stash"):
             p_row(3, "Shared Inventory", sha_c)
             p_row(4, "Stronghold", str_c)
-            print("  5. Back")
-            opts = 5
+            print("  5. IAP Hack")
+            print("  6. Back")
+            opts = 6
         else:
             print("  3. Back")
             
@@ -1801,6 +1857,8 @@ def equipment_page(profile, baseline, bundle):
             stash_items_page(profile, baseline, bundle, "shared", "SHARED INVENTORY")
         elif choice == 4 and bundle.get("stash"):
             stash_items_page(profile, baseline, bundle, "stronghold", "STRONGHOLD")
+        elif choice == 5 and bundle.get("stash"):
+            iap_hack_page(profile, baseline, bundle)
 
 
 # ---------------------------------------------------------------- editing
