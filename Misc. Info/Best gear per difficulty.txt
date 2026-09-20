@@ -1,0 +1,4 @@
+Legend:		Masterpiece Legendary
+Mythic: 	Masterpiece Mythic
+Immortal: 	Ultimate Mythic
+Demigod+: 	Ultimate Demigod
